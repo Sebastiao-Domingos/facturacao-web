@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Um projeto com um design de elite como o **DIMBO DC** precisa de uma documentação que esteja à altura. Vamos transformar esse README padrão em algo que respire profissionalismo, tecnologia e organização.
 
-## Getting Started
+Aqui está uma versão otimizada, visualmente rica e pronta para o teu repositório:
 
-First, run the development server:
+---
+
+````markdown
+# 💎 DIMBO DC — Sistema de Gestão Inteligente
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lucis/lucis/master/assets/logo.png" alt="DIMBO DC Logo" width="80" />
+</p>
+
+<p align="center">
+  <strong>O coração da faturação digital e gestão de stock para o mercado angolano.</strong>
+  <br />
+  Construído com Next.js 16, Tailwind CSS 4 e uma arquitetura de segurança de elite.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript" />
+  <img src="https://img.shields.io/badge/Shadcn_UI-v2-black?style=for-the-badge" />
+</p>
+
+---
+
+## ✨ Características de Elite
+
+O **DIMBO DC** não é apenas um ERP; é uma experiência de alta performance:
+
+- **🎨 Design de Próxima Geração**: Interface baseada em _Glassmorphism_ com suporte nativo a Dark/Light mode via `next-themes`.
+- **🔐 Segurança Robusta**: Autenticação stateless via JWT com armazenamento de dados sensíveis criptografados em **AES-256**.
+- **⚡ Performance Extrema**: Renderização híbrida utilizando o potencial do Next.js e animações fluidas com Framer Motion.
+- **🛠️ Tech Stack Moderna**:
+  - **Frontend**: React 19 + Next.js 16 (App Router)
+  - **Estilização**: Tailwind CSS 4 + Shadcn/UI (OKLCH Colors)
+  - **Formulários**: React Hook Form + Zod (Validação estrita)
+  - **Comunicação**: Axios + Interceptors para renovação de tokens.
+
+---
+
+## 🚀 Como Começar
+
+### Pré-requisitos
+
+- Node.js 20.x ou superior
+- NPM ou PNPM
+
+### Instalação
+
+1. Clone o repositório:
+   ```bash
+   git clone [https://github.com/seu-utilizador/dimbo-dc.git](https://github.com/seu-utilizador/dimbo-dc.git)
+   ```
+````
+
+2. Instale as dependências:
+
+```bash
+npm install
+
+```
+
+3. Configure as variáveis de ambiente (.env.local):
+
+```env
+NEXT_PUBLIC_API_URL=[http://seu-backend-django.com/api](http://seu-backend-django.com/api)
+NEXT_PUBLIC_CRYPTO_KEY=sua_chave_aes_secreta
+
+```
+
+4. Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação estará disponível em `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Estrutura do Projeto
 
-## Learn More
+```text
+src/
+├── app/              # Rotas e Layouts (App Router)
+├── components/       # Componentes de UI e Lógica Visual
+│   ├── ui/           # Componentes base (Shadcn)
+│   └── shared/       # Componentes reutilizáveis (Sidebar, Navbar)
+├── providers/        # Contextos (Auth, Theme)
+├── services/         # Configurações de API (Axios)
+├── hooks/            # Hooks personalizados
+└── lib/              # Utilitários (Criptografia, Zod Schemas)
 
-To learn more about Next.js, take a look at the following resources:
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Scripts Disponíveis
 
-## Deploy on Vercel
+- `npm run dev`: Inicia o ambiente de desenvolvimento com Turbopack.
+- `npm run build`: Cria a versão de produção otimizada.
+- `npm run start`: Inicia o servidor em modo de produção.
+- `npm run lint`: Executa a verificação de código.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🇦🇴 Orgulhosamente desenvolvido para Angola
+
+O DIMBO DC foi desenhado para responder às necessidades específicas de faturação e gestão das unidades de negócio locais, garantindo rapidez, segurança de dados e conformidade.
+
+---
+
+---
+
+### O que mudou neste README:
+
+1. **Visual Profissional**: Adição de Badges que mostram a Tech Stack atualizada (Next 16, Tailwind 4).
+2. **Destaque Técnico**: Menciona explicitamente a criptografia AES-256 e as cores OKLCH, o que valoriza o teu trabalho perante outros devs ou investidores.
+3. **Clareza**: Explica como configurar o `.env` (essencial para a chave de criptografia que criámos).
+4. **Estrutura**: Mostra a organização das pastas, o que ajuda muito na manutenção futura.
