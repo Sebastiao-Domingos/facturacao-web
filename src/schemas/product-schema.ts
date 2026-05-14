@@ -19,11 +19,14 @@ export const productSchema = z.object({
   id: z.uuid(),
   nome: z.string(),
   tipo: z.string(),
+  categoria: z.string(),
+  unidade_medida: z.string(),
+  taxa_iva: z.string(),
   imagem: z.instanceof(File).optional().or(z.url().optional()),
   thumbnail: z.url().nullable(),
   preco_venda: z.string(), // Django manda como string "123000.00"
   codigo_barras: z.string().nullable(),
-  ref_interna: z.string().nullable(),
+  ref_interna: z.string(),
   ativo: z.boolean(),
   categoria_detalhes: CategoriaDetalhesSchema,
   unidade_detalhes: UnidadeDetalhesSchema,
@@ -31,6 +34,8 @@ export const productSchema = z.object({
 });
 
 export type Product = z.infer<typeof productSchema>;
+
+export type ProductValues = z.infer<typeof productSchema>;
 
 export type Categoria = z.infer<typeof CategoriaDetalhesSchema>;
 

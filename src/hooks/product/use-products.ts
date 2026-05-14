@@ -15,7 +15,7 @@ export function useProductMutations() {
 
   // Criar Produto
   const createMutation = useMutation({
-    mutationFn: (newProduct: Product) => service.create(newProduct),
+    mutationFn: (newProduct: FormData) => service.create(newProduct),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Produto criado com sucesso!");

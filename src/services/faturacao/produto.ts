@@ -20,7 +20,7 @@ export class ProdutoService {
     return response.data;
   }
 
-  async create(formData: Product): Promise<Product> {
+  async create(formData: FormData): Promise<Product> {
     const response = await api.post(this.endpoint, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });

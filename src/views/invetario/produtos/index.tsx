@@ -32,11 +32,12 @@ import {
 import { ErrorComponent } from "@/components/error-component";
 import { Loader } from "@/components/loader";
 import { HeaderPage } from "@/components/header-page";
-import { ProductForm } from "@/src/components/inventory/product-form";
+import { ProductForm } from "@/src/components/inventory/form-test";
 
 export function ProductsPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useProducts({ page });
+  const [isOpen, setIsOpen] = useState(false);
 
   // Formatador de Moeda Angolana
   const kwanzaFormat = new Intl.NumberFormat("pt-AO", {
@@ -61,17 +62,18 @@ export function ProductsPage() {
 
   return (
     <div className="space-y-3">
-      {/* Header com Branding Dinâmico */}
-
       <HeaderPage
         title="Produtos"
         description="Gerencie os produtos do seu inventário"
       >
-        <Button className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6">
+        <Button
+          className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
+          onClick={() => setIsOpen(!isOpen)}
+        >
           <PackagePlus size={18} />
           Adicionar Produto
         </Button>
-        <ProductForm />
+        <ProductForm onOpenChange={() => setIsOpen(!isOpen)} isOpen={isOpen} />
       </HeaderPage>
 
       {/* Filtros Premium */}
