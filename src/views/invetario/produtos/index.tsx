@@ -122,7 +122,7 @@ export function ProductsPage() {
                         {product.nome}
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                        {product.categoria_detalhes.nome!}
+                        {product?.categoria_detalhes?.nome || "SEM CATEGORIA"}
                       </span>
                     </div>
                   </div>
