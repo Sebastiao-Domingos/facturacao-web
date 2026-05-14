@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       Cookies.set("user", encryptedUser, cookieConfig); // Salva o texto cifrado
 
       setUser(userData);
-      router.replace("/produtos");
+      router.replace("/");
     } catch (error) {
       console.error("Falha ao completar login:", error);
       logout();

@@ -30,6 +30,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ErrorComponent } from "@/components/error-component";
+import { Loader } from "@/components/loader";
 
 export function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -43,29 +45,16 @@ export function ProductsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium text-muted-foreground animate-pulse">
-          A carregar inventário...
-        </p>
-      </div>
+      <Loader message="Por favor, aguarde.Está a carregar os produtos..." />
     );
   }
 
   if (isError) {
     return (
-      <div className="flex h-100 flex-col items-center justify-center gap-4 text-center">
-        <div className="rounded-full bg-destructive/10 p-4 text-destructive">
-          <PackagePlus size={40} />
-        </div>
-        <h2 className="text-xl font-bold">Erro ao carregar produtos</h2>
-        <p className="text-muted-foreground">
-          Verifique a sua conexão com o servidor Django.
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          Tentar novamente
-        </Button>
-      </div>
+      <ErrorComponent
+        message="Erro ao carregar produtos"
+        description="Erro ao carregar produtos, verificar se o servidor está online"
+      />
     );
   }
 
