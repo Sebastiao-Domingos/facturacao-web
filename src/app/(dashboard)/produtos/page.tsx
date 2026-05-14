@@ -1,3 +1,3 @@
-import { ProdutosPage } from "@/src/views/dashboard/index";
+import { ProductsPage } from "@/src/views/dashboard/index";
 
-export default ProdutosPage;
+export default ProductsPage;

@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from "../api";
 import { Produto, PaginatedResponse } from "@/src/types";
 
 export const faturacaoService = {

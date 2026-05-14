@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
-  BarChart3,
-  Settings,
-  Store,
-  ChevronRight,
-} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Store, ChevronRight } from "lucide-react";
 
 import {
   Sidebar,
@@ -24,113 +17,171 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-    },
-    {
-      title: "Inventário",
-      url: "#",
-      icon: Package,
-      items: [
-        { title: "Produtos", url: "/produtos" },
-        { title: "Categorias", url: "/categorias" },
-        { title: "Stock Crítico", url: "/stock-critico" },
-      ],
-    },
-    {
-      title: "Vendas",
-      url: "#",
-      icon: ShoppingCart,
-      items: [
-        { title: "Ponto de Venda (PDV)", url: "/pdv" },
-        { title: "Histórico", url: "/vendas/historico" },
-        { title: "Relatórios", url: "/vendas/relatorios" },
-      ],
-    },
-  ],
-};
+import { NavUser } from "./nav-user";
+import { useAuth } from "@/src/providers/auth-provider";
+import { data } from "@/data/menu";
 
 export function AppSidebar() {
+  const { user } = useAuth();
+  const pathname = usePathname();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
   return (
-    <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/50">
-        <div className="flex items-center gap-2 px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            D
+    <Sidebar
+      variant="floating"
+      collapsible="icon"
+      className="border-r border-border/40 bg-sidebar/50 backdrop-blur-xl"
+    >
+      {/* Header Corrigido para Centro Perfeito */}
+      <SidebarHeader className="h-20 flex flex-row items-center group-data-[collapsible=icon]:justify-center px-4 group-data-[collapsible=icon]:px-0">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 text-primary-foreground">
+            <Store size={22} strokeWidth={2.5} />
           </div>
-          <span className="font-bold text-xl tracking-tight group-data-[collapsible=icon]:hidden">
-            DIMBO DC
-          </span>
+          {!isCollapsed && (
+            <div className="flex flex-col leading-none animate-in fade-in slide-in-from-left-2 transition-all">
+              <span className="font-black text-lg tracking-tighter uppercase italic">
+                Dimbo DC
+              </span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Enterprise
+              </span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-3 group-data-[collapsible=icon]:px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
-          <SidebarMenu>
-            {data.navMain.map((item) => (
-              <Collapsible
-                key={item.title}
-                asChild
-                defaultOpen={item.isActive}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  {item.items ? (
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton tooltip={item.title}>
-                          {item.icon && <item.icon />}
-                          <span>{item.title}</span>
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton asChild>
-                                <a href={subItem.url}>
-                                  <span>{subItem.title}</span>
-                                </a>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </>
-                  ) : (
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <a href={item.url}>
-                        {item.icon && <item.icon />}
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
+          <SidebarGroupLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-2 mb-4 group-data-[collapsible=icon]:hidden">
+            Gestão Operacional
+          </SidebarGroupLabel>
+
+          <SidebarMenu className="gap-1">
+            {data.navMain.map((item) => {
+              const isActive =
+                pathname === item.url ||
+                item.items?.some((sub) => pathname === sub.url);
+
+              return (
+                <Collapsible
+                  key={item.title}
+                  asChild
+                  defaultOpen={isActive}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    {item.items ? (
+                      <>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            className={`h-11 transition-all group-data-[collapsible=icon]:justify-center ${
+                              isActive
+                                ? "bg-primary/5 text-primary"
+                                : "hover:bg-primary/10"
+                            }`}
+                          >
+                            {item.icon && (
+                              <item.icon
+                                className={`shrink-0 ${
+                                  isActive
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                                }`}
+                              />
+                            )}
+                            <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                              {item.title}
+                            </span>
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+
+                        <CollapsibleContent className="group-data-[collapsible=icon]:hidden animate-in slide-in-from-top-1">
+                          <SidebarMenuSub className="ml-4 mt-1 border-l border-primary/20 gap-1">
+                            {item.items.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={pathname === subItem.url}
+                                >
+                                  <Link
+                                    href={subItem.url}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {subItem.icon && (
+                                      <subItem.icon
+                                        size={14}
+                                        className="opacity-70 shrink-0"
+                                      />
+                                    )}
+                                    <span className="text-sm font-medium">
+                                      {subItem.title}
+                                    </span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </>
+                    ) : (
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.title}
+                        className={`h-11 transition-all group-data-[collapsible=icon]:justify-center ${
+                          pathname === item.url
+                            ? "bg-primary/5 text-primary ring-1 ring-primary/20"
+                            : "hover:bg-primary/10"
+                        }`}
+                      >
+                        <Link href={item.url}>
+                          <item.icon
+                            className={`shrink-0 ${
+                              pathname === item.url
+                                ? "text-primary"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                          <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 p-4">
-        {/* Aqui colocaremos o UserMenu mais tarde */}
-        <div className="text-[10px] text-center font-bold text-muted-foreground uppercase opacity-50 group-data-[collapsible=icon]:hidden">
-          v2.0 • Angola
-        </div>
+      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2 bg-sidebar-accent/30 border-t border-border/40">
+        <NavUser user={user!} />
+
+        {!isCollapsed && (
+          <div className="flex flex-col items-center gap-1 opacity-40 py-2">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[9px] font-black tracking-[0.2em] uppercase">
+                Sistema Ativo
+              </span>
+            </div>
+            <span className="text-[8px] font-medium italic">
+              Luanda, Angola • v2.0.6
+            </span>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

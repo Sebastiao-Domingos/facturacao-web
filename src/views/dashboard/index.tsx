@@ -1,6 +1,8 @@
+// src/app/(dashboard)/produtos/page.tsx
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { faturacaoService } from "@/src/services/faturacaoService";
+
+import { useState } from "react";
+import { useProducts } from "@/src/hooks/product/use-products";
 import {
   Table,
   TableBody,
@@ -9,72 +11,226 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Loader2,
+  PackagePlus,
+  Search,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ImageOff,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { ThemeToggle } from "@/components/theme-toggle";
+export function ProductsPage() {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError } = useProducts({ page });
 
-export function ProdutosPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["produtos"],
-    queryFn: () => faturacaoService.getProdutos(),
+  // Formatador de Moeda Angolana
+  const kwanzaFormat = new Intl.NumberFormat("pt-AO", {
+    style: "currency",
+    currency: "AOA",
   });
 
-  return (
-    <div className="p-8 space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl font-bold">
-            Gestão de Produtos
-          </CardTitle>
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">
+          A carregar inventário...
+        </p>
+      </div>
+    );
+  }
 
-          <ThemeToggle />
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Imagem</TableHead>
-                <TableHead>Designação</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Código</TableHead>
-                <TableHead>Estado</TableHead>
+  if (isError) {
+    return (
+      <div className="flex h-100 flex-col items-center justify-center gap-4 text-center">
+        <div className="rounded-full bg-destructive/10 p-4 text-destructive">
+          <PackagePlus size={40} />
+        </div>
+        <h2 className="text-xl font-bold">Erro ao carregar produtos</h2>
+        <p className="text-muted-foreground">
+          Verifique a sua conexão com o servidor Django.
+        </p>
+        <Button onClick={() => window.location.reload()}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header com Branding Dinâmico */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tighter uppercase text-primary">
+            Inventário
+          </h1>
+          <p className="text-muted-foreground font-medium">
+            Exibindo {data?.results.length} de {data?.total_itens} produtos
+            registados.
+          </p>
+        </div>
+        <Button className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6">
+          <PackagePlus size={18} />
+          Adicionar Produto
+        </Button>
+      </div>
+
+      {/* Filtros Premium */}
+      <div className="flex items-center gap-4 bg-background/50 p-4 rounded-2xl border border-border/50 backdrop-blur-sm shadow-sm">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por nome ou barras..."
+            className="pl-10 h-11 bg-background/50 rounded-xl border-none ring-1 ring-border/50 focus-visible:ring-primary"
+          />
+        </div>
+        {/* Futuros Selects de Categoria aqui */}
+      </div>
+
+      {/* Tabela de Elite */}
+      <div className="rounded-2xl border border-border/50 bg-background/50 overflow-hidden backdrop-blur-md shadow-sm">
+        <Table>
+          <TableHeader className="bg-muted/30">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[400px] font-bold py-4">
+                Produto / Categoria
+              </TableHead>
+              <TableHead className="font-bold">Referência</TableHead>
+              <TableHead className="font-bold">Preço de Venda</TableHead>
+              <TableHead className="font-bold">Estado</TableHead>
+              <TableHead className="text-right font-bold pr-6">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data?.results.map((product) => (
+              <TableRow
+                key={product.id}
+                className="hover:bg-primary/5 transition-all group border-border/40"
+              >
+                <TableCell className="py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 shrink-0 rounded-xl bg-muted/50 border border-border/50 overflow-hidden flex items-center justify-center">
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt={product.nome}
+                          className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                        />
+                      ) : (
+                        <ImageOff className="h-5 w-5 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm tracking-tight leading-none mb-1 group-hover:text-primary transition-colors">
+                        {product.nome}
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                        {product.categoria_detalhes.nome}
+                      </span>
+                    </div>
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded border border-border/50">
+                    {product.ref_interna || "SEM REF"}
+                  </code>
+                </TableCell>
+
+                <TableCell className="font-black text-sm tracking-tighter">
+                  {kwanzaFormat.format(Number(product.preco_venda))}
+                </TableCell>
+
+                <TableCell>
+                  {product.ativo ? (
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-bold uppercase text-[9px] tracking-widest"
+                    >
+                      Ativo
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="bg-destructive/10 text-destructive border-destructive/20 font-bold uppercase text-[9px] tracking-widest"
+                    >
+                      Inativo
+                    </Badge>
+                  )}
+                </TableCell>
+
+                <TableCell className="text-right pr-6">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-8 w-8 hover:bg-primary/10"
+                      >
+                        <MoreHorizontal size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-40 rounded-xl"
+                    >
+                      <DropdownMenuLabel className="text-[10px] uppercase text-muted-foreground">
+                        Opções
+                      </DropdownMenuLabel>
+                      <DropdownMenuItem className="cursor-pointer font-medium">
+                        Editar Detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer font-medium text-destructive focus:bg-destructive/10 focus:text-destructive">
+                        Suspender
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    A carregar produtos...
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data?.results.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <img
-                        src={p.thumbnail || "/placeholder.png"}
-                        alt={p.nome}
-                        className="w-12 h-12 rounded object-cover border"
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{p.nome}</TableCell>
-                    <TableCell>{p.preco_venda} Kz</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {p.codigo_barras}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={p.ativo ? "default" : "destructive"}>
-                        {p.ativo ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+
+        {/* Paginação Inteligente */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Página {data?.pagina_atual} de {data?.total_paginas}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data?.links.previous}
+              onClick={() => setPage((p) => p - 1)}
+              className="h-8 w-8 p-0 rounded-lg"
+            >
+              <ChevronLeft size={16} />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data?.links.next}
+              onClick={() => setPage((p) => p + 1)}
+              className="h-8 w-8 p-0 rounded-lg"
+            >
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
