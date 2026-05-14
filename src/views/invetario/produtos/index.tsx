@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2,
   PackagePlus,
   Search,
   MoreHorizontal,
@@ -32,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ErrorComponent } from "@/components/error-component";
 import { Loader } from "@/components/loader";
+import { HeaderPage } from "@/components/header-page";
 
 export function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -59,23 +59,18 @@ export function ProductsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header com Branding Dinâmico */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black tracking-tighter uppercase text-primary">
-            Inventário
-          </h1>
-          <p className="text-muted-foreground font-medium">
-            Exibindo {data?.results.length} de {data?.total_itens} produtos
-            registados.
-          </p>
-        </div>
+
+      <HeaderPage
+        title="Produtos"
+        description="Gerencie os produtos do seu inventário"
+      >
         <Button className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6">
           <PackagePlus size={18} />
           Adicionar Produto
         </Button>
-      </div>
+      </HeaderPage>
 
       {/* Filtros Premium */}
       <div className="flex items-center gap-4 bg-background/50 p-4 rounded-2xl border border-border/50 backdrop-blur-sm shadow-sm">
@@ -127,7 +122,7 @@ export function ProductsPage() {
                         {product.nome}
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                        {product.categoria_detalhes.nome}
+                        {product.categoria_detalhes.nome!}
                       </span>
                     </div>
                   </div>
