@@ -73,7 +73,7 @@ export function ProductsPage() {
           <PackagePlus size={18} />
           Adicionar Produto
         </Button>
-        <ProductForm onOpenChange={() => setIsOpen(!isOpen)} isOpen={isOpen} />
+        <ProductForm onOpenChange={setIsOpen} isOpen={isOpen} />
       </HeaderPage>
 
       {/* Filtros Premium */}

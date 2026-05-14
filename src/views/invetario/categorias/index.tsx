@@ -30,9 +30,11 @@ import { ErrorComponent } from "@/components/error-component";
 import { Loader } from "@/components/loader";
 import { HeaderPage } from "@/components/header-page";
 import { useCategorias } from "@/src/hooks/product/use-categoria";
+import { CategoryForm } from "@/src/components/inventory/category-form";
 
 export function CategoriesPage() {
   const [page, setPage] = useState(1);
+  const [isOpen, setIsOpen] = useState(false);
   const { data, isLoading, isError } = useCategorias({ page });
 
   if (isLoading) {
@@ -58,10 +60,19 @@ export function CategoriesPage() {
         title="Categorias"
         description="Gerencie os categorias do seu inventário"
       >
-        <Button className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6">
+        <Button
+          className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
+          onClick={() => setIsOpen(!isOpen)}
+        >
           <PackagePlus size={18} />
           Adicionar Categoria
         </Button>
+
+        <CategoryForm
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          onSuccess={() => console.log("Ola como vai!")}
+        />
       </HeaderPage>
 
       {/* Filtros Premium */}

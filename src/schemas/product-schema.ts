@@ -2,10 +2,10 @@
 import { z } from "zod";
 
 // Detalhes aninhados que vêm do Django
-const CategoriaDetalhesSchema = z.object({
-  id: z.uuid(),
+export const CategoriaDetalhesSchema = z.object({
+  id: z.uuid().nullable(),
   nome: z.string(),
-  descricao: z.string().nullable(),
+  descricao: z.string(),
 });
 
 const UnidadeDetalhesSchema = z.object({
