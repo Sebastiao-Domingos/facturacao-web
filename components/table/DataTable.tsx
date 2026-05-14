@@ -13,52 +13,31 @@ import { clsx } from "clsx";
 export type SortDirection = "asc" | "desc" | null;
 
 export interface ColumnDef<T> {
-  /** Unique key matching a key of T, or a custom id */
   accessorKey: keyof T | string;
-  /** Header label */
   header: string;
-  /** Custom cell renderer */
   cell?: (value: unknown, row: T) => React.ReactNode;
-  /** Whether the column is sortable */
   sortable?: boolean;
-  /** Whether the column is filterable */
   filterable?: boolean;
-  /** Tailwind classes for the <td> */
   className?: string;
-  /** Fixed pixel width */
   width?: number;
 }
 
 export interface DataTableProps<T extends object> {
-  /** Array of rows */
   data: T[];
-  /** Column definitions */
   columns: ColumnDef<T>[];
-  /** Rows per page options */
   pageSizeOptions?: number[];
-  /** Default rows per page */
   defaultPageSize?: number;
-  /** Optional caption / title shown above the table */
   caption?: string;
-  /** Callback when a row is clicked */
   onRowClick?: (row: T) => void;
-  /** Show a global search input */
   globalSearch?: boolean;
-  /** Show column visibility toggles */
   columnToggle?: boolean;
-  /** Additional wrapper className */
   className?: string;
-  /** Loading state */
   loading?: boolean;
-  /** Empty state message */
   emptyMessage?: string;
 }
 
 // ─────────────────────────────────────────────
 //  ZOD SCHEMA
-//  FIX: z.record(z.string(), z.string().max(200))
-//  com dois argumentos explícitos evita que o RHF
-//  infira o valor como {} em vez de string.
 // ─────────────────────────────────────────────
 const searchSchema = z.object({
   globalQuery: z.string().max(200).optional(),
@@ -86,7 +65,7 @@ function matchesFilter(value: unknown, query: string): boolean {
 }
 
 // ─────────────────────────────────────────────
-//  ICONS (inline SVG — zero extra deps)
+//  ICONS
 // ─────────────────────────────────────────────
 const IconSearch = () => (
   <svg
@@ -158,18 +137,19 @@ const IconSpinner = () => (
 // ─────────────────────────────────────────────
 function SortIndicator({ direction }: { direction: SortDirection }) {
   return (
-    <span className="ml-1.5 flex flex-col gap-px opacity-60">
+    <span className="ml-1.5 flex flex-col gap-px opacity-50">
+      {/* Usa a variável --table-sort-active via style inline para compatibilidade */}
       <span
-        className={clsx(
-          direction === "asc" ? "opacity-100 text-indigo-400" : ""
-        )}
+        style={{
+          color: direction === "asc" ? "var(--table-sort-active)" : undefined,
+        }}
       >
         <IconChevronUp />
       </span>
       <span
-        className={clsx(
-          direction === "desc" ? "opacity-100 text-indigo-400" : ""
-        )}
+        style={{
+          color: direction === "desc" ? "var(--table-sort-active)" : undefined,
+        }}
       >
         <IconChevronDown />
       </span>
@@ -219,23 +199,41 @@ function Pagination({
     return range;
   }, [page, pageCount]);
 
-  const btnBase =
-    "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1117] disabled:pointer-events-none disabled:opacity-40";
-
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-3 px-4 py-3 border-t border-white/[0.06]">
+    <div
+      className="flex flex-col sm:flex-row items-center gap-3 px-4 py-3"
+      style={{ borderTop: "1px solid var(--table-border)" }}
+    >
       {/* Contagem */}
-      <p className="text-xs text-white/40 tabular-nums sm:mr-auto">
+      <p
+        className="text-xs tabular-nums sm:mr-auto"
+        style={{ color: "var(--table-muted)" }}
+      >
         {total === 0 ? "Sem resultados" : `${start}–${end} de ${total}`}
       </p>
 
       {/* Botões de página */}
       <div className="flex items-center gap-1">
+        {/* Anterior */}
         <button
-          className={clsx(btnBase, "h-8 w-8 bg-white/5 hover:bg-white/10")}
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
           aria-label="Página anterior"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40"
+          style={
+            {
+              background: "var(--table-pagination-btn)",
+              color: "var(--table-muted)",
+              "--tw-ring-color": "var(--ring)",
+            } as React.CSSProperties
+          }
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background =
+              "var(--table-pagination-btn-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = "var(--table-pagination-btn)")
+          }
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
             <path
@@ -246,37 +244,45 @@ function Pagination({
           </svg>
         </button>
 
+        {/* Páginas */}
         {pages.map((p, i) =>
           p === "…" ? (
             <span
               key={`ellipsis-${i}`}
-              className="w-8 text-center text-xs text-white/30"
+              className="w-8 text-center text-xs"
+              style={{ color: "var(--table-muted)" }}
             >
               …
             </span>
           ) : (
-            <button
+            <PaginationButton
               key={p}
+              page={p as number}
+              isActive={page === p}
               onClick={() => onPageChange(p as number)}
-              aria-current={page === p ? "page" : undefined}
-              className={clsx(
-                btnBase,
-                "h-8 w-8 text-xs",
-                page === p
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/50"
-                  : "bg-white/5 text-white/60 hover:bg-white/10"
-              )}
-            >
-              {p}
-            </button>
+            />
           )
         )}
 
+        {/* Próxima */}
         <button
-          className={clsx(btnBase, "h-8 w-8 bg-white/5 hover:bg-white/10")}
           onClick={() => onPageChange(page + 1)}
           disabled={page === pageCount}
           aria-label="Próxima página"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40"
+          style={
+            {
+              background: "var(--table-pagination-btn)",
+              color: "var(--table-muted)",
+            } as React.CSSProperties
+          }
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background =
+              "var(--table-pagination-btn-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = "var(--table-pagination-btn)")
+          }
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
             <path
@@ -288,12 +294,17 @@ function Pagination({
         </button>
       </div>
 
-      {/* Selector de linhas por página */}
+      {/* Linhas por página */}
       <select
         value={pageSize}
         onChange={(e) => onPageSizeChange(Number(e.target.value))}
-        className="h-8 rounded-lg border border-white/10 bg-white/5 px-2 text-xs text-white/60 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         aria-label="Linhas por página"
+        className="h-8 rounded-lg px-2 text-xs focus:outline-none focus:ring-2 transition-colors"
+        style={{
+          background: "var(--table-input-bg)",
+          border: "1px solid var(--table-input-border)",
+          color: "var(--table-muted)",
+        }}
       >
         {pageSizeOptions.map((s) => (
           <option key={s} value={s}>
@@ -302,6 +313,42 @@ function Pagination({
         ))}
       </select>
     </div>
+  );
+}
+
+// Botão de página isolado para gerir hover com estado activo
+function PaginationButton({
+  page,
+  isActive,
+  onClick,
+}: {
+  page: number;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const bg = isActive
+    ? "var(--table-pagination-active-bg)"
+    : hovered
+    ? "var(--table-pagination-btn-hover)"
+    : "var(--table-pagination-btn)";
+
+  const color = isActive
+    ? "var(--table-pagination-active-fg)"
+    : "var(--table-muted)";
+
+  return (
+    <button
+      onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-xs font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2"
+      style={{ background: bg, color }}
+    >
+      {page}
+    </button>
   );
 }
 
@@ -321,39 +368,78 @@ function ColumnToggle<T>({ columns, visible, onToggle }: ColumnToggleProps<T>) {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/60 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2"
+        style={{
+          background: "var(--table-toggle-bg)",
+          border: "1px solid var(--table-border)",
+          color: "var(--table-muted)",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.background = "var(--table-toggle-bg-hover)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.background = "var(--table-toggle-bg)")
+        }
       >
         <IconColumns />
         Colunas
       </button>
 
       {open && (
-        <div className="absolute right-0 z-30 mt-2 w-48 rounded-xl border border-white/10 bg-[#1a1d27] shadow-2xl shadow-black/50">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
-            <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+        <div
+          className="absolute right-0 z-30 mt-2 w-48 rounded-xl shadow-2xl overflow-hidden"
+          style={{
+            background: "var(--table-toggle-panel)",
+            border: "1px solid var(--table-border)",
+          }}
+        >
+          {/* Header do painel */}
+          <div
+            className="flex items-center justify-between px-3 py-2"
+            style={{ borderBottom: "1px solid var(--table-border)" }}
+          >
+            <span
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "var(--table-muted)" }}
+            >
               Visibilidade
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="text-white/30 hover:text-white/60 transition"
+              className="transition-colors"
+              style={{ color: "var(--table-muted)" }}
             >
               <IconClose />
             </button>
           </div>
+
+          {/* Lista */}
           <ul className="py-1">
             {columns.map((col) => {
               const key = String(col.accessorKey);
               const checked = visible.has(key);
               return (
                 <li key={key}>
-                  <label className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-white/5 transition">
+                  <label
+                    className="flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors"
+                    style={{ color: "var(--table-foreground)" }}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLElement).style.background =
+                        "var(--table-row-stripe)")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLElement).style.background =
+                        "transparent")
+                    }
+                  >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => onToggle(key)}
-                      className="h-3.5 w-3.5 rounded accent-indigo-500"
+                      className="h-3.5 w-3.5 rounded"
+                      style={{ accentColor: "var(--primary)" }}
                     />
-                    <span className="text-xs text-white/70">{col.header}</span>
+                    <span className="text-xs">{col.header}</span>
                   </label>
                 </li>
               );
@@ -390,18 +476,13 @@ export function DataTable<T extends object>({
     () => new Set(columns.map((c) => String(c.accessorKey)))
   );
 
-  // ── Form (react-hook-form + zod) ──
+  // ── Form ──
   const { control, watch, setValue } = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
     defaultValues: { globalQuery: "", columnFilters: {} },
   });
 
   const globalQuery = watch("globalQuery") ?? "";
-
-  // FIX 1: cast explícito para Record<string, string>
-  // O RHF infere o valor do registo como o tipo genérico do form (FieldValues),
-  // que pode ser resolvido como {} pelo compilador TypeScript.
-  // O cast é seguro porque o schema Zod garante string no runtime.
   const columnFilters = (watch("columnFilters") ?? {}) as Record<
     string,
     string
@@ -417,7 +498,7 @@ export function DataTable<T extends object>({
     setVisibleCols((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
-        if (next.size === 1) return prev; // manter pelo menos uma coluna visível
+        if (next.size === 1) return prev;
         next.delete(key);
       } else {
         next.add(key);
@@ -426,7 +507,7 @@ export function DataTable<T extends object>({
     });
   }, []);
 
-  // ── Sort handler ──
+  // ── Sort ──
   const handleSort = useCallback(
     (key: string) => {
       if (sortKey !== key) {
@@ -445,7 +526,6 @@ export function DataTable<T extends object>({
   const processed = useMemo(() => {
     let rows = [...data];
 
-    // Filtro global
     if (globalQuery) {
       rows = rows.filter((row) =>
         columns.some((col) => {
@@ -455,29 +535,21 @@ export function DataTable<T extends object>({
       );
     }
 
-    // Filtros por coluna
-    // FIX 2: guarda typeof query === "string" elimina definitivamente o erro
-    // "Argument of type '{}' is not assignable to parameter of type 'string'"
-    // mesmo que o cast acima não seja suficiente nalguns cenários de strict mode.
     Object.entries(columnFilters).forEach(([key, query]) => {
       if (!query || typeof query !== "string") return;
-      rows = rows.filter((row) => {
-        const val = getNestedValue(row, key);
-        return matchesFilter(val, query);
-      });
+      rows = rows.filter((row) =>
+        matchesFilter(getNestedValue(row, key), query)
+      );
     });
 
-    // Ordenação
     if (sortKey && sortDir) {
       rows.sort((a, b) => {
-        const av = getNestedValue(a, sortKey);
-        const bv = getNestedValue(b, sortKey);
-        const aStr = String(av ?? "");
-        const bStr = String(bv ?? "");
+        const av = String(getNestedValue(a, sortKey) ?? "");
+        const bv = String(getNestedValue(b, sortKey) ?? "");
         const cmp =
-          isNaN(Number(aStr)) || isNaN(Number(bStr))
-            ? aStr.localeCompare(bStr)
-            : Number(aStr) - Number(bStr);
+          isNaN(Number(av)) || isNaN(Number(bv))
+            ? av.localeCompare(bv)
+            : Number(av) - Number(bv);
         return sortDir === "asc" ? cmp : -cmp;
       });
     }
@@ -486,7 +558,6 @@ export function DataTable<T extends object>({
   }, [data, columns, globalQuery, columnFilters, sortKey, sortDir]);
 
   const pageCount = Math.max(1, Math.ceil(processed.length / pageSize));
-
   const paged = useMemo(
     () => processed.slice((page - 1) * pageSize, page * pageSize),
     [processed, page, pageSize]
@@ -503,25 +574,44 @@ export function DataTable<T extends object>({
   return (
     <div
       className={clsx(
-        "relative flex flex-col rounded-2xl border border-white/[0.07] bg-[#0f1117] text-white shadow-2xl shadow-black/60 overflow-hidden font-[system-ui,sans-serif]",
+        "relative flex flex-col overflow-hidden shadow-sm",
         className
       )}
+      style={{
+        background: "var(--table-bg)",
+        color: "var(--table-foreground)",
+        border: "1px solid var(--table-border)",
+        borderRadius: "var(--radius-xl)",
+      }}
     >
       {/* ── Toolbar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3"
+        style={{
+          background: "var(--table-toolbar-bg)",
+          borderBottom: "1px solid var(--table-border)",
+        }}
+      >
         {caption && (
-          <h2 className="text-sm font-semibold text-white/80 tracking-tight sm:mr-auto">
+          <h2
+            className="text-sm font-semibold tracking-tight sm:mr-auto"
+            style={{ color: "var(--table-foreground)" }}
+          >
             {caption}
           </h2>
         )}
 
+        {/* Pesquisa global */}
         {globalSearch && (
           <Controller
             control={control}
             name="globalQuery"
             render={({ field }) => (
               <div className="relative flex-1 max-w-xs">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-white/30">
+                <span
+                  className="pointer-events-none absolute inset-y-0 left-3 flex items-center"
+                  style={{ color: "var(--table-muted)" }}
+                >
                   <IconSearch />
                 </span>
                 <input
@@ -531,7 +621,15 @@ export function DataTable<T extends object>({
                     field.onChange(e);
                     setPage(1);
                   }}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60 transition"
+                  className="w-full rounded-lg py-2 pl-9 pr-8 text-sm transition-colors focus:outline-none focus:ring-2"
+                  style={
+                    {
+                      background: "var(--table-input-bg)",
+                      border: "1px solid var(--table-input-border)",
+                      color: "var(--table-foreground)",
+                      "--tw-ring-color": "var(--ring)",
+                    } as React.CSSProperties
+                  }
                 />
                 {field.value && (
                   <button
@@ -540,7 +638,8 @@ export function DataTable<T extends object>({
                       setValue("globalQuery", "");
                       setPage(1);
                     }}
-                    className="absolute inset-y-0 right-2.5 flex items-center text-white/30 hover:text-white/60 transition"
+                    className="absolute inset-y-0 right-2.5 flex items-center transition-colors"
+                    style={{ color: "var(--table-muted)" }}
                   >
                     <IconClose />
                   </button>
@@ -559,22 +658,26 @@ export function DataTable<T extends object>({
         )}
       </div>
 
-      {/* ── Table wrapper ── */}
+      {/* ── Table ── */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-max border-collapse text-sm">
+          {/* Cabeçalho */}
           <thead>
-            <tr className="border-b border-white/[0.06]">
+            <tr style={{ borderBottom: "1px solid var(--table-border)" }}>
               {visibleColumns.map((col) => {
                 const key = String(col.accessorKey);
                 const dir: SortDirection = sortKey === key ? sortDir : null;
                 return (
                   <th
                     key={key}
-                    style={{ width: col.width }}
+                    style={{
+                      width: col.width,
+                      background: "var(--table-header-bg)",
+                      color: "var(--table-header-foreground)",
+                    }}
                     className={clsx(
-                      "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-white/40 select-none",
-                      col.sortable &&
-                        "cursor-pointer hover:text-white/70 transition-colors",
+                      "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider select-none transition-colors",
+                      col.sortable && "cursor-pointer",
                       col.className
                     )}
                     onClick={() => col.sortable && handleSort(key)}
@@ -597,12 +700,16 @@ export function DataTable<T extends object>({
 
             {/* Linha de filtros por coluna */}
             {visibleColumns.some((c) => c.filterable) && (
-              <tr className="border-b border-white/[0.04] bg-white/[0.015]">
+              <tr style={{ borderBottom: "1px solid var(--table-border)" }}>
                 {visibleColumns.map((col) => {
                   const key = String(col.accessorKey);
                   return (
-                    <td key={key} className="px-3 py-1.5">
-                      {col.filterable ? (
+                    <td
+                      key={key}
+                      className="px-3 py-1.5"
+                      style={{ background: "var(--table-header-bg)" }}
+                    >
+                      {col.filterable && (
                         <Controller
                           control={control}
                           name={`columnFilters.${key}`}
@@ -610,16 +717,21 @@ export function DataTable<T extends object>({
                             <input
                               {...field}
                               value={field.value ?? ""}
-                              placeholder={`Filtrar ${col.header}…`}
+                              placeholder={`Filtrar…`}
                               onChange={(e) => {
                                 field.onChange(e);
                                 setPage(1);
                               }}
-                              className="w-full rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition"
+                              className="w-full rounded-md px-2 py-1 text-xs transition-colors focus:outline-none focus:ring-1"
+                              style={{
+                                background: "var(--table-input-bg)",
+                                border: "1px solid var(--table-input-border)",
+                                color: "var(--table-foreground)",
+                              }}
                             />
                           )}
                         />
-                      ) : null}
+                      )}
                     </td>
                   );
                 })}
@@ -627,6 +739,7 @@ export function DataTable<T extends object>({
             )}
           </thead>
 
+          {/* Corpo */}
           <tbody>
             {loading ? (
               <tr>
@@ -634,7 +747,10 @@ export function DataTable<T extends object>({
                   colSpan={visibleColumns.length}
                   className="py-20 text-center"
                 >
-                  <div className="flex flex-col items-center gap-3 text-white/30">
+                  <div
+                    className="flex flex-col items-center gap-3"
+                    style={{ color: "var(--table-muted)" }}
+                  >
                     <IconSpinner />
                     <span className="text-xs">A carregar…</span>
                   </div>
@@ -644,46 +760,28 @@ export function DataTable<T extends object>({
               <tr>
                 <td
                   colSpan={visibleColumns.length}
-                  className="py-20 text-center text-xs text-white/30"
+                  className="py-20 text-center text-xs"
+                  style={{ color: "var(--table-muted)" }}
                 >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               paged.map((row, rowIdx) => (
-                <tr
+                <TableRow
                   key={rowIdx}
-                  onClick={() => onRowClick?.(row)}
-                  className={clsx(
-                    "border-b border-white/[0.04] transition-colors duration-100",
-                    onRowClick && "cursor-pointer",
-                    rowIdx % 2 === 0 ? "bg-transparent" : "bg-white/[0.015]",
-                    "hover:bg-indigo-500/[0.07]"
-                  )}
-                >
-                  {visibleColumns.map((col) => {
-                    const key = String(col.accessorKey);
-                    const value = getNestedValue(row, key);
-                    return (
-                      <td
-                        key={key}
-                        className={clsx(
-                          "px-4 py-3 text-sm text-white/70 align-middle",
-                          col.className
-                        )}
-                      >
-                        {col.cell ? col.cell(value, row) : String(value ?? "—")}
-                      </td>
-                    );
-                  })}
-                </tr>
+                  row={row}
+                  rowIdx={rowIdx}
+                  visibleColumns={visibleColumns}
+                  onRowClick={onRowClick}
+                />
               ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* ── Pagination ── */}
+      {/* ── Paginação ── */}
       <Pagination
         page={page}
         pageCount={pageCount}
@@ -694,6 +792,59 @@ export function DataTable<T extends object>({
         onPageSizeChange={handlePageSizeChange}
       />
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+//  TABLE ROW — isolado para gerir hover local
+// ─────────────────────────────────────────────
+function TableRow<T extends object>({
+  row,
+  rowIdx,
+  visibleColumns,
+  onRowClick,
+}: {
+  row: T;
+  rowIdx: number;
+  visibleColumns: ColumnDef<T>[];
+  onRowClick?: (row: T) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const bg = hovered
+    ? "var(--table-row-hover)"
+    : rowIdx % 2 !== 0
+    ? "var(--table-row-stripe)"
+    : "transparent";
+
+  return (
+    <tr
+      onClick={() => onRowClick?.(row)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={clsx(
+        "transition-colors duration-100",
+        onRowClick && "cursor-pointer"
+      )}
+      style={{
+        background: bg,
+        borderBottom: "1px solid var(--table-border)",
+      }}
+    >
+      {visibleColumns.map((col) => {
+        const key = String(col.accessorKey);
+        const value = getNestedValue(row, key);
+        return (
+          <td
+            key={key}
+            className={clsx("px-4 py-3 text-sm align-middle", col.className)}
+            style={{ color: "var(--table-foreground)" }}
+          >
+            {col.cell ? col.cell(value, row) : String(value ?? "—")}
+          </td>
+        );
+      })}
+    </tr>
   );
 }
 

@@ -104,7 +104,7 @@ export function ProdutosPage() {
   const { data, isLoading } = useProducts({ page: page });
 
   return (
-    <div className="p-8">
+    <div className="p-2">
       <DataTable
         data={data?.results || []} // A API devolve { results: [...] }
         columns={columns}

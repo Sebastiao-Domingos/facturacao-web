@@ -10,13 +10,13 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  
+
   /* Cores de UI Principal */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  
+
   /* Estados e Bordas */
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -37,6 +37,27 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* DataTable — mapeadas para o @theme inline */
+  --color-table-bg: var(--table-bg);
+  --color-table-foreground: var(--table-foreground);
+  --color-table-border: var(--table-border);
+  --color-table-header-bg: var(--table-header-bg);
+  --color-table-header-foreground: var(--table-header-foreground);
+  --color-table-row-hover: var(--table-row-hover);
+  --color-table-row-stripe: var(--table-row-stripe);
+  --color-table-toolbar-bg: var(--table-toolbar-bg);
+  --color-table-input-bg: var(--table-input-bg);
+  --color-table-input-border: var(--table-input-border);
+  --color-table-muted: var(--table-muted);
+  --color-table-toggle-bg: var(--table-toggle-bg);
+  --color-table-toggle-bg-hover: var(--table-toggle-bg-hover);
+  --color-table-toggle-panel: var(--table-toggle-panel);
+  --color-table-sort-active: var(--table-sort-active);
+  --color-table-pagination-btn: var(--table-pagination-btn);
+  --color-table-pagination-btn-hover: var(--table-pagination-btn-hover);
+  --color-table-pagination-active-bg: var(--table-pagination-active-bg);
+  --color-table-pagination-active-fg: var(--table-pagination-active-fg);
+
   /* Raios de Borda */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -44,22 +65,24 @@
   --radius-xl: calc(var(--radius) * 1.4);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   MODO LIGHT
+───────────────────────────────────────────────────────────── */
 :root {
   /* MODO LIGHT - Paleta Profissional Slate/Indigo */
-  --background: oklch(0.99 0.002 240); /* Quase Branco Azulado */
-  --foreground: oklch(0.18 0.02 240);   /* Texto Negro Profundo */
-  
+  --background: oklch(0.99 0.002 240);
+  --foreground: oklch(0.18 0.02 240);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.02 240);
-  
+
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 240);
 
-  /* Indigo 600 - Cor Principal */
-  --primary: oklch(0.51 0.19 260); 
+  --primary: oklch(0.51 0.19 260);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.96 0.01 240); 
+  --secondary: oklch(0.96 0.01 240);
   --secondary-foreground: oklch(0.25 0.05 240);
 
   --muted: oklch(0.96 0.01 240);
@@ -86,21 +109,43 @@
   --sidebar-accent-foreground: var(--primary);
   --sidebar-border: oklch(0.91 0.01 240);
   --sidebar-ring: var(--ring);
+
+  /* ── DataTable Light ── */
+  --table-bg:                  oklch(1 0 0);               /* fundo do card */
+  --table-foreground:          oklch(0.18 0.02 240);        /* texto principal */
+  --table-border:              oklch(0.91 0.01 240);        /* bordas gerais */
+  --table-header-bg:           oklch(0.97 0.005 240);       /* cabeçalho */
+  --table-header-foreground:   oklch(0.45 0.04 240);        /* texto do header */
+  --table-row-hover:           oklch(0.51 0.19 260 / 6%);  /* hover de linha */
+  --table-row-stripe:          oklch(0.97 0.005 240);       /* linhas alternadas */
+  --table-toolbar-bg:          oklch(0.98 0.005 240);       /* toolbar topo */
+  --table-input-bg:            oklch(0.96 0.01 240);        /* fundo inputs */
+  --table-input-border:        oklch(0.88 0.01 240);        /* borda inputs */
+  --table-muted:               oklch(0.55 0.04 240);        /* texto secundário */
+  --table-toggle-bg:           oklch(0.96 0.01 240);        /* botão colunas */
+  --table-toggle-bg-hover:     oklch(0.92 0.01 240);        /* hover botão colunas */
+  --table-toggle-panel:        oklch(1 0 0);                /* painel dropdown */
+  --table-sort-active:         oklch(0.51 0.19 260);        /* ícone sort activo */
+  --table-pagination-btn:      oklch(0.96 0.01 240);        /* botão pág. inactivo */
+  --table-pagination-btn-hover:oklch(0.91 0.01 240);        /* hover botão pág. */
+  --table-pagination-active-bg:oklch(0.51 0.19 260);        /* página actual bg */
+  --table-pagination-active-fg:oklch(0.99 0 0);             /* página actual texto */
 }
 
+/* ─────────────────────────────────────────────────────────────
+   MODO DARK
+───────────────────────────────────────────────────────────── */
 .dark {
-  /* MODO DARK - Slate 950 / Dark Indigo */
-  --background: oklch(0.12 0.02 240); /* Fundo Escuro Profundo */
-  --foreground: oklch(0.95 0.01 240);  /* Texto Claro */
-  
+  --background: oklch(0.12 0.02 240);
+  --foreground: oklch(0.95 0.01 240);
+
   --card: oklch(0.15 0.02 240);
   --card-foreground: oklch(0.95 0.01 240);
-  
+
   --popover: oklch(0.15 0.02 240);
   --popover-foreground: oklch(0.95 0.01 240);
 
-  /* Indigo 500 - Brilha melhor no Dark */
-  --primary: oklch(0.62 0.19 260); 
+  --primary: oklch(0.62 0.19 260);
   --primary-foreground: oklch(0.12 0.02 240);
 
   --secondary: oklch(0.22 0.03 240);
@@ -128,6 +173,27 @@
   --sidebar-accent-foreground: oklch(0.95 0.01 240);
   --sidebar-border: oklch(0.22 0.03 240);
   --sidebar-ring: var(--ring);
+
+  /* ── DataTable Dark ── */
+  --table-bg:                  oklch(0.15 0.02 240);        /* fundo do card */
+  --table-foreground:          oklch(0.95 0.01 240);        /* texto principal */
+  --table-border:              oklch(0.22 0.03 240);        /* bordas gerais */
+  --table-header-bg:           oklch(0.17 0.02 240);        /* cabeçalho */
+  --table-header-foreground:   oklch(0.6 0.03 240);         /* texto do header */
+  --table-row-hover:           oklch(0.62 0.19 260 / 7%);  /* hover de linha */
+  --table-row-stripe:          oklch(0.17 0.02 240);        /* linhas alternadas */
+  --table-toolbar-bg:          oklch(0.14 0.02 240);        /* toolbar topo */
+  --table-input-bg:            oklch(0.18 0.02 240);        /* fundo inputs */
+  --table-input-border:        oklch(0.25 0.03 240);        /* borda inputs */
+  --table-muted:               oklch(0.65 0.02 240);        /* texto secundário */
+  --table-toggle-bg:           oklch(0.18 0.02 240);        /* botão colunas */
+  --table-toggle-bg-hover:     oklch(0.22 0.03 240);        /* hover botão colunas */
+  --table-toggle-panel:        oklch(0.17 0.02 240);        /* painel dropdown */
+  --table-sort-active:         oklch(0.62 0.19 260);        /* ícone sort activo */
+  --table-pagination-btn:      oklch(0.18 0.02 240);        /* botão pág. inactivo */
+  --table-pagination-btn-hover:oklch(0.22 0.03 240);        /* hover botão pág. */
+  --table-pagination-active-bg:oklch(0.62 0.19 260);        /* página actual bg */
+  --table-pagination-active-fg:oklch(0.12 0.02 240);        /* página actual texto */
 }
 
 @layer base {
