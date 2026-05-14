@@ -32,6 +32,7 @@ import {
 import { ErrorComponent } from "@/components/error-component";
 import { Loader } from "@/components/loader";
 import { HeaderPage } from "@/components/header-page";
+import { ProductForm } from "@/src/components/inventory/product-form";
 
 export function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -70,6 +71,7 @@ export function ProductsPage() {
           <PackagePlus size={18} />
           Adicionar Produto
         </Button>
+        <ProductForm />
       </HeaderPage>
 
       {/* Filtros Premium */}

@@ -20,10 +20,21 @@ export class ProdutoService {
     return response.data;
   }
 
-  async createProduto(formData: FormData): Promise<Product> {
+  async create(formData: Product): Promise<Product> {
     const response = await api.post(this.endpoint, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
+  }
+
+  async update(id: string, formData: FormData): Promise<Product> {
+    const response = await api.patch(`${this.endpoint}${id}/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  }
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`${this.endpoint}${id}/`);
   }
 }
