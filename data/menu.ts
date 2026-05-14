@@ -72,12 +72,12 @@ export const data: { navMain: NavItem[] } = {
       items: [
         {
           title: "Provincias",
-          url: "/localidade/provincias",
+          url: "/provincias",
           icon: MapIcon,
         },
         {
           title: "Municipios",
-          url: "/localidade/municipios",
+          url: "/municipios",
           icon: MapIcon,
         },
       ],

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // Detalhes aninhados que vêm do Django
 export const CategoriaDetalhesSchema = z.object({
-  id: z.uuid().nullable(),
+  id: z.uuid().optional(),
   nome: z.string(),
   descricao: z.string(),
 });
@@ -12,6 +12,15 @@ const UnidadeDetalhesSchema = z.object({
   id: z.uuid(),
   sigla: z.string(),
   nome: z.string(),
+});
+
+const TaxaDetalhesSchema = z.object({
+  id: z.uuid(),
+  codigo: z.string(),
+  valor: z.string(),
+  descricao: z.string(),
+  motivo_isencao: z.string().optional(),
+  codigo_isencao_agt: z.string().optional(),
 });
 
 // O Produto Real
@@ -30,6 +39,7 @@ export const productSchema = z.object({
   ativo: z.boolean(),
   categoria_detalhes: CategoriaDetalhesSchema,
   unidade_detalhes: UnidadeDetalhesSchema,
+  taxa_detalhes: TaxaDetalhesSchema,
   // ... podes adicionar taxa_detalhes se precisares na UI
 });
 

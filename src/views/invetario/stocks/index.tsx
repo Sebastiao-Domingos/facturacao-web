@@ -1,3 +1,5 @@
+import { MyForm } from "@/src/components/inventory/form";
+
 export function StocksPage() {
   return (
     <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2">
@@ -6,6 +8,7 @@ export function StocksPage() {
         Esta funcionalidade ainda está em desenvolvimento. Por favor, volte mais
         tarde.
       </p>
+      <MyForm />
     </div>
   );
 }
