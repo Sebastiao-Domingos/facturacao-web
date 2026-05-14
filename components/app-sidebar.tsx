@@ -68,8 +68,7 @@ export function AppSidebar() {
           <SidebarMenu className="gap-1">
             {data.navMain.map((item) => {
               const isActive =
-                pathname === item.url ||
-                item.items?.some((sub) => pathname === sub.url);
+                pathname === item.url || pathname.startsWith(item.url + "/");
 
               return (
                 <Collapsible
@@ -84,7 +83,7 @@ export function AppSidebar() {
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
                             tooltip={item.title}
-                            className={`h-11 transition-all group-data-[collapsible=icon]:justify-center ${
+                            className={`h-11 transition-all group-data-[collapsible=icon]:justify-center cursor-pointer ${
                               isActive
                                 ? "bg-primary/5 text-primary"
                                 : "hover:bg-primary/10"
@@ -112,10 +111,12 @@ export function AppSidebar() {
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   asChild
-                                  isActive={pathname === subItem.url}
+                                  isActive={
+                                    pathname === `${item.url}${subItem.url}`
+                                  }
                                 >
                                   <Link
-                                    href={subItem.url}
+                                    href={`${item.url}${subItem.url}`}
                                     className="flex items-center gap-2"
                                   >
                                     {subItem.icon && (

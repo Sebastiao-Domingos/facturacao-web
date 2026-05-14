@@ -1,235 +1,99 @@
-// src/app/(dashboard)/produtos/page.tsx
-"use client";
+// src/app/(dashboard)/page.tsx
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp, Package, Users, Wallet } from "lucide-react";
 
-import { useState } from "react";
-import { useProducts } from "@/src/hooks/product/use-products";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  PackagePlus,
-  Search,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  ImageOff,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+const stats = [
+  {
+    title: "Vendas de Hoje",
+    value: "145.250,00 Kz",
+    description: "+12% em relação a ontem",
+    icon: Wallet,
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+  },
+  {
+    title: "Produtos em Stock",
+    value: "1.240",
+    description: "24 itens com stock crítico",
+    icon: Package,
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
+  },
+  {
+    title: "Novos Clientes",
+    value: "18",
+    description: "Este mês",
+    icon: Users,
+    color: "text-violet-500",
+    bg: "bg-violet-500/10",
+  },
+  {
+    title: "Meta Mensal",
+    value: "68%",
+    description: "Objetivo: 2.500.000 Kz",
+    icon: TrendingUp,
+    color: "text-amber-500",
+    bg: "bg-amber-500/10",
+  },
+];
 
-export function ProductsPage() {
-  const [page, setPage] = useState(1);
-  const { data, isLoading, isError } = useProducts({ page });
-
-  // Formatador de Moeda Angolana
-  const kwanzaFormat = new Intl.NumberFormat("pt-AO", {
-    style: "currency",
-    currency: "AOA",
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-2">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium text-muted-foreground animate-pulse">
-          A carregar inventário...
-        </p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex h-100 flex-col items-center justify-center gap-4 text-center">
-        <div className="rounded-full bg-destructive/10 p-4 text-destructive">
-          <PackagePlus size={40} />
-        </div>
-        <h2 className="text-xl font-bold">Erro ao carregar produtos</h2>
-        <p className="text-muted-foreground">
-          Verifique a sua conexão com o servidor Django.
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          Tentar novamente
-        </Button>
-      </div>
-    );
-  }
-
+export function DashboardHome() {
   return (
-    <div className="space-y-6">
-      {/* Header com Branding Dinâmico */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black tracking-tighter uppercase text-primary">
-            Inventário
-          </h1>
-          <p className="text-muted-foreground font-medium">
-            Exibindo {data?.results.length} de {data?.total_itens} produtos
-            registados.
-          </p>
-        </div>
-        <Button className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6">
-          <PackagePlus size={18} />
-          Adicionar Produto
-        </Button>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Painel de Controlo
+        </h1>
+        <p className="text-muted-foreground font-medium">
+          Bem-vindo ao resumo das suas operações de hoje.
+        </p>
       </div>
 
-      {/* Filtros Premium */}
-      <div className="flex items-center gap-4 bg-background/50 p-4 rounded-2xl border border-border/50 backdrop-blur-sm shadow-sm">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar por nome ou barras..."
-            className="pl-10 h-11 bg-background/50 rounded-xl border-none ring-1 ring-border/50 focus-visible:ring-primary"
-          />
-        </div>
-        {/* Futuros Selects de Categoria aqui */}
-      </div>
-
-      {/* Tabela de Elite */}
-      <div className="rounded-2xl border border-border/50 bg-background/50 overflow-hidden backdrop-blur-md shadow-sm">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[400px] font-bold py-4">
-                Produto / Categoria
-              </TableHead>
-              <TableHead className="font-bold">Referência</TableHead>
-              <TableHead className="font-bold">Preço de Venda</TableHead>
-              <TableHead className="font-bold">Estado</TableHead>
-              <TableHead className="text-right font-bold pr-6">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data?.results.map((product) => (
-              <TableRow
-                key={product.id}
-                className="hover:bg-primary/5 transition-all group border-border/40"
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, i) => (
+          <Card
+            key={i}
+            className="border-border/50 bg-background/50 backdrop-blur-sm overflow-hidden group"
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground opacity-80">
+                {stat.title}
+              </CardTitle>
+              <div
+                className={`p-2 rounded-xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110`}
               >
-                <TableCell className="py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 shrink-0 rounded-xl bg-muted/50 border border-border/50 overflow-hidden flex items-center justify-center">
-                      {product.thumbnail ? (
-                        <img
-                          src={product.thumbnail}
-                          alt={product.nome}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                        />
-                      ) : (
-                        <ImageOff className="h-5 w-5 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm tracking-tight leading-none mb-1 group-hover:text-primary transition-colors">
-                        {product.nome}
-                      </span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
-                        {product.categoria_detalhes.nome}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
+                <stat.icon size={18} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black tracking-tighter">
+                {stat.value}
+              </div>
+              <p className="text-xs font-medium text-muted-foreground mt-1">
+                {stat.description}
+              </p>
+              {/* Mini gráfico visual sutil */}
+              <div className="mt-4 h-1 w-full bg-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${stat.bg.replace(
+                    "/10",
+                    ""
+                  )} w-[60%] opacity-50`}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-                <TableCell>
-                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded border border-border/50">
-                    {product.ref_interna || "SEM REF"}
-                  </code>
-                </TableCell>
-
-                <TableCell className="font-black text-sm tracking-tighter">
-                  {kwanzaFormat.format(Number(product.preco_venda))}
-                </TableCell>
-
-                <TableCell>
-                  {product.ativo ? (
-                    <Badge
-                      variant="outline"
-                      className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-bold uppercase text-[9px] tracking-widest"
-                    >
-                      Ativo
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-destructive/10 text-destructive border-destructive/20 font-bold uppercase text-[9px] tracking-widest"
-                    >
-                      Inativo
-                    </Badge>
-                  )}
-                </TableCell>
-
-                <TableCell className="text-right pr-6">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full h-8 w-8 hover:bg-primary/10"
-                      >
-                        <MoreHorizontal size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-40 rounded-xl"
-                    >
-                      <DropdownMenuLabel className="text-[10px] uppercase text-muted-foreground">
-                        Opções
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem className="cursor-pointer font-medium">
-                        Editar Detalhes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer font-medium text-destructive focus:bg-destructive/10 focus:text-destructive">
-                        Suspender
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        {/* Paginação Inteligente */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border/40 bg-muted/10">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-            Página {data?.pagina_atual} de {data?.total_paginas}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!data?.links.previous}
-              onClick={() => setPage((p) => p - 1)}
-              className="h-8 w-8 p-0 rounded-lg"
-            >
-              <ChevronLeft size={16} />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!data?.links.next}
-              onClick={() => setPage((p) => p + 1)}
-              className="h-8 w-8 p-0 rounded-lg"
-            >
-              <ChevronRight size={16} />
-            </Button>
-          </div>
-        </div>
+      {/* Placeholder para Gráficos Maiores */}
+      <div className="grid gap-4 md:grid-cols-7">
+        <Card className="md:col-span-4 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
+          [Gráfico de Vendas Semanais]
+        </Card>
+        <Card className="md:col-span-3 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
+          [Produtos Mais Vendidos]
+        </Card>
       </div>
     </div>
   );

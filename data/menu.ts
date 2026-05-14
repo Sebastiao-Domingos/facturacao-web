@@ -29,12 +29,12 @@ export const data: { navMain: NavItem[] } = {
     },
     {
       title: "Inventário",
-      url: "#",
+      url: "/invetario",
       icon: Package,
       items: [
         { title: "Lista de Produtos", url: "/produtos", icon: Layers },
         { title: "Categorias", url: "/categorias", icon: Settings },
-        { title: "Stock Crítico", url: "/stock-critico", icon: TrendingUp },
+        { title: "Stock Crítico", url: "/stocks", icon: TrendingUp },
       ],
     },
     {
