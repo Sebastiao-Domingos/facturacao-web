@@ -7,7 +7,7 @@ export const ProvinciaSchema = z.object({
   nome: z.string(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
-  municipios: z.array(MunicipioSchema),
+  municipios: z.array(MunicipioSchema).optional(),
 });
 
 export type Provincia = z.infer<typeof ProvinciaSchema>;

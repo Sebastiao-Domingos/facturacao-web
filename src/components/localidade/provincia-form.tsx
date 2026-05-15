@@ -1,16 +1,12 @@
 // src/components/inventory/category-form.tsx
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 
-import {
-  CategoriaDetalhesSchema,
-  type Categoria,
-} from "@/src/schemas/product-schema";
-import { useCategoryMutations } from "@/src/hooks/product/use-categoria";
+import { type Categoria } from "@/src/schemas/product-schema";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +28,12 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useProvinciaMutations } from "@/src/hooks/localidade/use-provincia";
+import {
+  Provincia,
+  ProvinciaSchema,
+} from "@/src/schemas/localidade/provincia-schema";
+import { normalizeName } from "@/src/helpers/normalize-name";
 
 interface CategoriaFormProps {
   initialData?: Categoria | null;
@@ -40,20 +42,19 @@ interface CategoriaFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function CategoryForm({
+export function ProvinciaForm({
   initialData,
   onSuccess,
   isOpen,
   onOpenChange,
 }: CategoriaFormProps) {
-  const { createMutation, updateMutation } = useCategoryMutations();
+  const { createMutation, updateMutation } = useProvinciaMutations();
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
-  const form = useForm<Categoria>({
-    resolver: zodResolver(CategoriaDetalhesSchema),
+  const form = useForm<Provincia>({
+    resolver: zodResolver(ProvinciaSchema),
     defaultValues: {
       nome: "",
-      descricao: "",
     },
     mode: "onChange", // Validação em tempo real
     reValidateMode: "onChange",
@@ -65,35 +66,28 @@ export function CategoryForm({
       if (initialData?.id) {
         form.reset({
           nome: initialData.nome,
-          descricao: initialData.descricao || "",
         });
       } else {
-        form.reset({ nome: "", descricao: "" });
+        form.reset({ nome: "" });
       }
       // Limpa erros do formulário ao abrir
       form.clearErrors();
     }
   }, [initialData, isOpen, form]);
 
-  // Função para normalizar o nome da categoria (remover espaços extras)
-  const normalizeCategoryName = useCallback((name: string) => {
-    return name.trim().replace(/\s+/g, " ");
-  }, []);
-
-  async function onSubmit(data: Categoria) {
+  async function onSubmit(data: Provincia) {
     try {
       // Normaliza os dados antes de enviar
       const normalizedData = {
         ...data,
-        nome: normalizeCategoryName(data.nome),
-        descricao: data.descricao?.trim() || "",
+        nome: normalizeName(data.nome),
       };
 
       // Validação adicional antes de enviar
       if (!normalizedData.nome || normalizedData.nome.length < 2) {
         form.setError("nome", {
           type: "manual",
-          message: "Nome da categoria deve ter pelo menos 2 caracteres",
+          message: "Nome da província deve ter pelo menos 3 caracteres",
         });
         return;
       }
@@ -132,7 +126,7 @@ export function CategoryForm({
       ) {
         form.setError("nome", {
           type: "manual",
-          message: "Já existe uma categoria com este nome",
+          message: "Já existe uma  porovíncia com este nome",
         });
       } else {
         // Mostrar erro genérico no formulário
@@ -144,14 +138,6 @@ export function CategoryForm({
     }
   }
 
-  // Função para validar em tempo real se o nome já contém apenas espaços
-  const validateNoWhitespaceOnly = (value: string) => {
-    if (value && value.trim().length === 0) {
-      return "O nome não pode conter apenas espaços";
-    }
-    return true;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-112.5 border-border/60 shadow-2xl overflow-hidden">
@@ -160,8 +146,12 @@ export function CategoryForm({
             {initialData ? "Editar Categoria" : "Nova Categoria"}
           </DialogTitle>
           <DialogDescription className="font-medium text-muted-foreground">
-            Introduza os detalhes da categoria para organizar o seu stock.
+            Introduza os detalhes da Província.
           </DialogDescription>
+          {/* Indicador de campos obrigatórios */}
+          <div className="text-xs text-red-500 text-center">
+            * Campos marcados são obrigatórios
+          </div>
         </DialogHeader>
 
         <Form {...form}>
@@ -206,30 +196,14 @@ export function CategoryForm({
                     )}
                   >
                     Nome da Categoria
-                    <span className="text-xs text-muted-foreground font-normal">
-                      (obrigatório)
+                    <span className="text-xs text-red-500 font-normal">
+                      (*)
                     </span>
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ex: Eletrónicos, Higiene..."
+                      placeholder="Ex: Luanda, Uíge"
                       {...field}
-                      onChange={(e) => {
-                        // Impede caracteres especiais no início (opcional)
-                        const value = e.target.value;
-                        // Permite apenas letras, números, espaços e alguns caracteres
-                        if (
-                          (value.length > 0 &&
-                            /^[a-zA-Z0-9áéíóúâêôçãõÀÉÍÓÚÂÊÔÇÃÕ\s\-]+$/.test(
-                              value
-                            )) ||
-                          value === ""
-                        ) {
-                          field.onChange(value);
-                        } else if (value === "") {
-                          field.onChange(value);
-                        }
-                      }}
                       maxLength={50}
                       className={cn(
                         "h-12 transition-all border-2 font-medium",
@@ -258,57 +232,6 @@ export function CategoryForm({
                 </FormItem>
               )}
             />
-
-            {/* Campo: Descrição */}
-            <FormField
-              control={form.control}
-              name="descricao"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn(
-                      "font-bold transition-colors",
-                      fieldState.error && "text-destructive"
-                    )}
-                  >
-                    Descrição
-                    <span className="text-xs text-muted-foreground font-normal ml-2">
-                      (opcional)
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Breve descrição sobre a categoria..."
-                      {...field}
-                      value={field.value}
-                      maxLength={200}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      className={cn(
-                        "h-12 transition-all border-2 font-medium",
-                        fieldState.error
-                          ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive"
-                          : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                      )}
-                    />
-                  </FormControl>
-                  <div className="flex justify-between items-center">
-                    <FormMessage className="text-[10px] font-extrabold uppercase tracking-widest italic" />
-                    {field.value && field.value.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {field.value.length}/200
-                      </span>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* Indicador de campos obrigatórios */}
-            <div className="text-xs text-muted-foreground text-center">
-              * Campos marcados são obrigatórios
-            </div>
 
             <DialogFooter className="mt-8 gap-3">
               <Button

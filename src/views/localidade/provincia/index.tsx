@@ -6,10 +6,10 @@ import { PackagePlus, PencilIcon, Eye, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { CategoryForm } from "@/src/components/inventory/category-form";
 import DataTable, { ColumnDef } from "@/components/table/DataTable";
 import { Provincia } from "@/src/schemas/localidade/provincia-schema";
 import { useProvincias } from "@/src/hooks/localidade/use-provincia";
+import { ProvinciaForm } from "@/src/components/localidade/provincia-form";
 
 const columns: ColumnDef<Provincia>[] = [
   {
@@ -83,10 +83,10 @@ export function ProvinciasPage() {
           onClick={() => setIsOpen(!isOpen)}
         >
           <PackagePlus size={18} />
-          Adicionar Categoria
+          Novo(a)
         </Button>
 
-        <CategoryForm
+        <ProvinciaForm
           isOpen={isOpen}
           onOpenChange={setIsOpen}
           onSuccess={() => console.log("Ola como vai!")}
