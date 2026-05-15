@@ -18,7 +18,7 @@ export default function DashboardLayout({
           {/* ÁREA DO CONTEÚDO COM EFEITO DE PROFUNDIDADE */}
           <main className="relative flex-1 overflow-y-auto overflow-x-hidden bg-muted/30 dark:bg-zinc-950/20">
             <div className="container mx-auto h-full px-3 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8 xl:px-8 xl:py-10">
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-6">
                 {children}
               </div>
             </div>

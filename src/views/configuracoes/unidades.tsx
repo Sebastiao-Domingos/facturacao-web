@@ -1,30 +1,22 @@
+// src/app/(dashboard)/unidades/page.tsx
 "use client";
 
-import { useState } from "react";
 import {
-  Ruler,
-  Plus,
   MoreVertical,
   Edit2,
   Trash2,
   PackagePlus,
+  Scale,
+  Layers2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { HeaderPage } from "@/components/header-page";
 import { useUnidades } from "@/src/hooks/configuracao/use-unidade";
 import { ErrorComponent } from "@/components/error-component";
@@ -33,78 +25,100 @@ import { Loader } from "@/components/loader";
 export default function UnidadesPage() {
   const { data: unidades, isLoading, isError } = useUnidades();
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  if (isLoading) return <Loader />;
+
   if (isError) {
     return (
       <ErrorComponent
         message="Erro ao carregar unidades"
-        description="Erro ao carregar unidades, verificar se o servidor está online"
+        description="Não foi possível estabelecer conexão com o servidor de inventário."
       />
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-2">
       <HeaderPage
         title="Unidades de Medida"
-        description="Gerencie as unidades de medida utilizadas para os produtos, como kg, litro, unidade, etc."
+        description="Configure as métricas de stock para os seus produtos e serviços."
+        totalItens={unidades?.length}
       >
-        <Button className="h-11 gap-2 shadow-lg shadow-primary/20 font-semibold px-6">
-          <PackagePlus size={18} />
+        <Button className="h-12 gap-3 shadow-xl shadow-primary/20 font-black uppercase tracking-widest px-8 transition-all hover:scale-[1.02] active:scale-95">
+          <PackagePlus size={20} strokeWidth={2.5} />
           Nova(o)
         </Button>
       </HeaderPage>
 
-      <div className="rounded-2xl border border-border/50 bg-background/50 backdrop-blur-md overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow>
-              <TableHead className="font-bold">Nome da Unidade</TableHead>
-              <TableHead className="font-bold">Sigla</TableHead>
-              <TableHead className="text-right font-bold pr-6">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {unidades?.map((unidade) => (
-              <TableRow
-                key={unidade.id}
-                className="group hover:bg-primary/5 transition-colors"
-              >
-                <TableCell className="font-bold text-sm uppercase tracking-tight">
+      {/* GRID DE CARDS SEM TABELA */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+        {unidades?.map((unidade) => (
+          <div
+            key={unidade.id}
+            className="group relative flex flex-col items-center justify-between p-6 rounded-2xl border-2 border-border/40 bg-background/50 backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-1"
+          >
+            {/* Opções (Top Right) */}
+            <div className="absolute top-4 right-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full hover:bg-primary/10 h-8 w-8"
+                  >
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem className="gap-2 font-bold uppercase text-[10px] italic">
+                    <Edit2 size={12} /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="gap-2 font-bold uppercase text-[10px] italic text-destructive">
+                    <Trash2 size={12} /> Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Visual Icon (Representação da Sigla) */}
+            <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                <span className="text-xl font-black text-primary italic leading-none">
+                  {unidade.sigla}
+                </span>
+                <Scale className="absolute -bottom-1 -right-1 h-5 w-5 text-primary/30" />
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-sm font-black uppercase tracking-tighter text-foreground leading-none">
                   {unidade.nome}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="font-mono px-3">
-                    {unidade.sigla}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right pr-6">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full"
-                      >
-                        <MoreVertical size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="gap-2">
-                        <Edit2 size={14} /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2 text-destructive">
-                        <Trash2 size={14} /> Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </h3>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                  Métrica de Stock
+                </p>
+              </div>
+            </div>
+
+            {/* Footer do Card */}
+            <div className="mt-6 w-full pt-4 border-t border-border/20 flex justify-center">
+              <Badge
+                variant="outline"
+                className="rounded-full font-mono text-[10px] border-primary/20 text-primary bg-primary/5"
+              >
+                ID: {unidade.id?.slice(0, 8)}
+              </Badge>
+            </div>
+          </div>
+        ))}
+
+        {/* Empty State visual dentro da Grid */}
+        {unidades?.length === 0 && (
+          <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-border/40 rounded-2xl">
+            <Layers2 size={48} className="text-muted-foreground/20 mb-4" />
+            <p className="font-bold text-muted-foreground uppercase tracking-widest text-xs">
+              Nenhuma unidade registada
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
