@@ -3,12 +3,9 @@
 
 import { useState } from "react";
 import { useProducts } from "@/src/hooks/product/use-products";
-import { PackagePlus, Search } from "lucide-react";
+import { PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import { ErrorComponent } from "@/components/error-component";
-import { Loader } from "@/components/loader";
 import { HeaderPage } from "@/components/header-page";
 import { ProductForm } from "@/src/components/inventory/form-test";
 import DataTable, { ColumnDef } from "@/components/table/DataTable";
@@ -21,7 +18,9 @@ const columns: ColumnDef<Product>[] = [
     sortable: true,
     width: 90,
     cell: (value) => (
-      <span className="font-mono text-xs text-white/50">{String(value)}</span>
+      <span className="font-mono text-xs dark:text-white/50">
+        {String(value)}
+      </span>
     ),
   },
   {
@@ -38,7 +37,7 @@ const columns: ColumnDef<Product>[] = [
             className="h-8 w-8 rounded-md object-cover"
           />
         ) : (
-          <div className="h-8 w-8 rounded-md bg-white/5 flex items-center justify-center text-white/20 text-xs">
+          <div className="h-8 w-8 rounded-md bg-white/5 flex items-center justify-center dark:text-white/20 text-xs">
             ?
           </div>
         )}
@@ -57,7 +56,7 @@ const columns: ColumnDef<Product>[] = [
     header: "Unidade",
     width: 90,
     cell: (value) => (
-      <span className="rounded bg-white/5 px-2 py-0.5 text-xs text-white/50">
+      <span className="rounded bg-white/5 px-2 py-0.5 text-xs dark:text-white/50">
         {String(value)}
       </span>
     ),
@@ -107,12 +106,6 @@ export function ProductsPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useProducts({ page });
   const [isOpen, setIsOpen] = useState(false);
-
-  // Formatador de Moeda Angolana
-  const kwanzaFormat = new Intl.NumberFormat("pt-AO", {
-    style: "currency",
-    currency: "AOA",
-  });
 
   if (isError) {
     return (
