@@ -6,8 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 
-import { type Categoria } from "@/src/schemas/product-schema";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -35,9 +33,9 @@ import {
 } from "@/src/schemas/localidade/provincia-schema";
 import { normalizeName } from "@/src/helpers/normalize-name";
 
-interface CategoriaFormProps {
-  initialData?: Categoria | null;
-  onSuccess: () => void;
+interface ProvinciaFormProps {
+  initialData?: Provincia | null;
+  onSuccess?: () => void;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -47,7 +45,7 @@ export function ProvinciaForm({
   onSuccess,
   isOpen,
   onOpenChange,
-}: CategoriaFormProps) {
+}: ProvinciaFormProps) {
   const { createMutation, updateMutation } = useProvinciaMutations();
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
@@ -100,7 +98,9 @@ export function ProvinciaForm({
           },
           {
             onSuccess: () => {
-              onSuccess();
+              if (onSuccess) {
+                onSuccess();
+              }
               onOpenChange(false);
               form.reset();
             },
@@ -110,7 +110,9 @@ export function ProvinciaForm({
         // Lógica de Criação
         await createMutation.mutateAsync(normalizedData, {
           onSuccess: () => {
-            onSuccess();
+            if (onSuccess) {
+              onSuccess();
+            }
             onOpenChange(false);
             form.reset();
           },
@@ -143,7 +145,7 @@ export function ProvinciaForm({
       <DialogContent className="sm:max-w-112.5 border-border/60 shadow-2xl overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-primary">
-            {initialData ? "Editar Categoria" : "Nova Categoria"}
+            {initialData ? "Editar Província" : "Nova Porvíncia"}
           </DialogTitle>
           <DialogDescription className="font-medium text-muted-foreground">
             Introduza os detalhes da Província.
@@ -195,7 +197,7 @@ export function ProvinciaForm({
                       fieldState.error && "text-destructive"
                     )}
                   >
-                    Nome da Categoria
+                    Nome
                     <span className="text-xs text-red-500 font-normal">
                       (*)
                     </span>
@@ -258,9 +260,9 @@ export function ProvinciaForm({
                     Processar...
                   </>
                 ) : initialData ? (
-                  "Atualizar Categoria"
+                  "Atualizar"
                 ) : (
-                  "Registar Categoria"
+                  "Registar"
                 )}
               </Button>
             </DialogFooter>

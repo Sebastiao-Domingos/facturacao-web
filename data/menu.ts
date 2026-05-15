@@ -11,6 +11,8 @@ import {
   Layers,
   MapIcon,
   Home,
+  Scale,
+  Square,
 } from "lucide-react";
 
 interface NavItem {
@@ -89,24 +91,34 @@ export const data: { navMain: NavItem[] } = {
       items: [
         {
           title: "Perfil da Empresa",
-          url: "/configuracoes/empresa",
+          url: "/empresa",
           icon: Store,
         },
         {
           title: "Afiliares",
-          url: "/configuracoes/afiliares",
+          url: "/afiliares",
           icon: Home,
         },
         {
           title: "Utilizadores",
-          url: "/configuracoes/utilizadores",
+          url: "/utilizadores",
           icon: Users,
         },
 
         {
           title: "Preferências",
-          url: "/configuracoes/preferencias",
+          url: "/preferencias",
           icon: Settings,
+        },
+        {
+          title: "Unidades",
+          url: "/unidades",
+          icon: Square,
+        },
+        {
+          title: "Impostos",
+          url: "/impostos",
+          icon: Scale,
         },
       ],
     },

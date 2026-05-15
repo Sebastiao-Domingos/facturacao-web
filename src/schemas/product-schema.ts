@@ -63,10 +63,14 @@ export const productSchemaCreate = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   tipo: z.string().nullable().optional(),
   imagem: z.instanceof(File).optional().or(z.string().optional()),
-  categoria: z.string().nullable().optional(),
-  unidade_medida: z.string().nullable().optional(),
-  taxa_iva: z.number().nullable().optional(),
-  preco_venda: z.number().nullable().optional(),
+  categoria: z.uuid().nullable(),
+  unidade_medida: z.uuid().nullable(),
+  taxa_iva: z.uuid().nullable(),
+  preco_venda: z
+    .number({
+      error: "Preço deve ser um número",
+    })
+    .min(0, "Preço deve ser positivo"),
   ref_interna: z.string().optional(),
   ativo: z.boolean(),
 });

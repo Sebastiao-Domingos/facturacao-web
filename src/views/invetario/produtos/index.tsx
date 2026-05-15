@@ -3,11 +3,9 @@
 
 import { useState } from "react";
 import { useProducts } from "@/src/hooks/product/use-products";
-import { PackagePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { ProductForm } from "@/src/components/inventory/form-test";
+import { ProductForm } from "@/src/components/inventory/product-form";
 import DataTable, { ColumnDef } from "@/components/table/DataTable";
 import { Product } from "@/src/schemas/product-schema";
 
@@ -64,7 +62,9 @@ const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "taxa_detalhes.codigo",
     header: "IVA",
-    width: 100,
+    width: 60,
+    sortable: true,
+    filterable: true,
     cell: (_, row) => (
       <span className="text-xs text-amber-400">{row.taxa_detalhes.valor}%</span>
     ),
@@ -73,12 +73,25 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: "preco_venda",
     header: "Preço",
     sortable: true,
+    filterable: true,
+    width: 120,
+
     cell: (value) => (
       <span className="tabular-nums font-semibold text-emerald-400">
         {Number(value).toLocaleString("pt-AO", {
           style: "currency",
           currency: "AOA",
         })}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "tipo",
+    header: "Tipo",
+    sortable: true,
+    cell: (value) => (
+      <span className="font-mono text-xs dark:text-white/50">
+        {value === "P" ? "📦" : "🔧"}
       </span>
     ),
   },
@@ -105,7 +118,6 @@ const columns: ColumnDef<Product>[] = [
 export function ProductsPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useProducts({ page });
-  const [isOpen, setIsOpen] = useState(false);
 
   if (isError) {
     return (
@@ -122,14 +134,7 @@ export function ProductsPage() {
         title="Produtos"
         description="Gerencie os produtos do seu inventário"
       >
-        <Button
-          className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <PackagePlus size={18} />
-          Adicionar Produto
-        </Button>
-        <ProductForm onOpenChange={setIsOpen} isOpen={isOpen} />
+        <ProductForm />
       </HeaderPage>
 
       {/* Tabela de Elite */}

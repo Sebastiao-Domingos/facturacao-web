@@ -6,10 +6,10 @@ import { PackagePlus, PencilIcon, Eye, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { CategoryForm } from "@/src/components/inventory/category-form";
 import DataTable, { ColumnDef } from "@/components/table/DataTable";
 import { Municipio } from "@/src/schemas/localidade/municipio-schema";
 import { useMunicipios } from "@/src/hooks/localidade/use-municipio";
+import { MunicipioForm } from "@/src/components/localidade/municipio-form";
 
 const columns: ColumnDef<Municipio>[] = [
   {
@@ -96,14 +96,10 @@ export function MunicipiosPage() {
           onClick={() => setIsOpen(!isOpen)}
         >
           <PackagePlus size={18} />
-          Adicionar Categoria
+          Novo(a)
         </Button>
 
-        <CategoryForm
-          isOpen={isOpen}
-          onOpenChange={setIsOpen}
-          onSuccess={() => console.log("Ola como vai!")}
-        />
+        <MunicipioForm isOpen={isOpen} onOpenChange={setIsOpen} />
       </HeaderPage>
 
       <DataTable

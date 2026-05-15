@@ -40,7 +40,23 @@ const columns: ColumnDef<Provincia>[] = [
     header: "Editar",
     width: 40,
     cell: (_, row) => (
-      <Button size={"icon-sm"} variant={"secondary"}>
+      <Button
+        size={"icon-sm"}
+        variant={"secondary"}
+        onClick={() => {
+          let edit = false;
+
+          alert("Cheguei ate aqui!");
+
+          return (
+            <ProvinciaForm
+              isOpen={edit}
+              onOpenChange={(open) => (edit = open)}
+              initialData={row}
+            />
+          );
+        }}
+      >
         <PencilIcon />
       </Button>
     ),
