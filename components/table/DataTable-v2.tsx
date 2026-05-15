@@ -158,7 +158,7 @@ function matchesFilter(value: unknown, query: string): boolean {
 function getRowKey<T extends object>(
   row: T,
   rowKey?: keyof T | ((row: T) => string),
-  index?: number
+  index?: number,
 ): string {
   if (!rowKey) return String(index ?? Math.random());
   if (typeof rowKey === "function") return rowKey(row);
@@ -921,7 +921,7 @@ function Pagination({
               isActive={page === p}
               onClick={() => onPageChange(p as number)}
             />
-          )
+          ),
         )}
 
         <PagBtn
@@ -1043,8 +1043,8 @@ function PagNumBtn({
         background: isActive
           ? "var(--table-pagination-active-bg)"
           : hov
-          ? "var(--table-pagination-btn-hover)"
-          : "var(--table-pagination-btn)",
+            ? "var(--table-pagination-btn-hover)"
+            : "var(--table-pagination-btn)",
         color: isActive
           ? "var(--table-pagination-active-fg)"
           : "var(--table-muted)",
@@ -1106,10 +1106,10 @@ function TableRow<T extends object>({
   const bg = isSelected
     ? "var(--table-row-selected)"
     : hovered
-    ? "var(--table-row-hover)"
-    : rowIdx % 2 !== 0
-    ? "var(--table-row-stripe)"
-    : "transparent";
+      ? "var(--table-row-hover)"
+      : rowIdx % 2 !== 0
+        ? "var(--table-row-stripe)"
+        : "transparent";
 
   return (
     <tr
@@ -1146,7 +1146,7 @@ function TableRow<T extends object>({
               "text-sm align-middle",
               pad,
               onRowClick && "cursor-pointer",
-              col.className
+              col.className,
             )}
             style={{ color: "var(--table-foreground)" }}
           >
@@ -1234,7 +1234,7 @@ export function DataTableV2<T extends object>({
       if (isServerPagination) serverPagination.onPageChange(p);
       else setLocalPage(p);
     },
-    [isServerPagination, serverPagination]
+    [isServerPagination, serverPagination],
   );
 
   const handlePageSizeChange = useCallback(
@@ -1245,20 +1245,20 @@ export function DataTableV2<T extends object>({
         setLocalPage(1);
       }
     },
-    [isServerPagination, serverPagination]
+    [isServerPagination, serverPagination],
   );
 
   // ── Colunas visíveis ─────────────────────────────────────────────────────
   const [visibleCols, setVisibleCols] = useState<Set<string>>(
     () =>
       new Set(
-        columns.filter((c) => !c.hidden).map((c) => String(c.accessorKey))
-      )
+        columns.filter((c) => !c.hidden).map((c) => String(c.accessorKey)),
+      ),
   );
 
   const visibleColumns = useMemo(
     () => columns.filter((c) => visibleCols.has(String(c.accessorKey))),
-    [columns, visibleCols]
+    [columns, visibleCols],
   );
 
   const toggleColumn = useCallback((key: string) => {
@@ -1286,7 +1286,7 @@ export function DataTableV2<T extends object>({
       }
       if (!isServerPagination) setLocalPage(1);
     },
-    [sortKey, sortDir, isServerPagination]
+    [sortKey, sortDir, isServerPagination],
   );
 
   // ── Form de pesquisa ─────────────────────────────────────────────────────
@@ -1305,7 +1305,7 @@ export function DataTableV2<T extends object>({
   // Debounce da pesquisa server-side
   const debouncedServerQuery = useDebounce(
     serverQuery,
-    serverSearch?.debounce ?? 400
+    serverSearch?.debounce ?? 400,
   );
 
   useEffect(() => {
@@ -1314,7 +1314,7 @@ export function DataTableV2<T extends object>({
 
   // ── Selecção ─────────────────────────────────────────────────────────────
   const [internalSelected, setInternalSelected] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const selectedKeys = useMemo(() => {
@@ -1337,22 +1337,22 @@ export function DataTableV2<T extends object>({
         const updated = selected
           ? [...(externalSelected ?? []), row]
           : (externalSelected ?? []).filter(
-              (_, i) => getRowKey(_, rowKey, i) !== key
+              (_, i) => getRowKey(_, rowKey, i) !== key,
             );
         onSelectionChange(updated);
       }
     },
-    [rowKey, externalSelected, onSelectionChange]
+    [rowKey, externalSelected, onSelectionChange],
   );
 
   const selectedRowObjects = useMemo(
     () => data.filter((r, i) => selectedKeys.has(getRowKey(r, rowKey, i))),
-    [data, selectedKeys, rowKey]
+    [data, selectedKeys, rowKey],
   );
 
   const allPageKeys = useMemo(
     () => data.map((r, i) => getRowKey(r, rowKey, i)),
-    [data, rowKey]
+    [data, rowKey],
   );
 
   const allSelected =
@@ -1370,7 +1370,7 @@ export function DataTableV2<T extends object>({
         onSelectionChange?.([]);
       }
     },
-    [allPageKeys, data, onSelectionChange]
+    [allPageKeys, data, onSelectionChange],
   );
 
   const clearSelection = useCallback(() => {
@@ -1390,9 +1390,9 @@ export function DataTableV2<T extends object>({
         columns.some((col) =>
           matchesFilter(
             getNestedValue(row, String(col.accessorKey)),
-            globalQuery
-          )
-        )
+            globalQuery,
+          ),
+        ),
       );
     }
 
@@ -1400,7 +1400,7 @@ export function DataTableV2<T extends object>({
     Object.entries(columnFilters).forEach(([key, query]) => {
       if (!query || typeof query !== "string") return;
       rows = rows.filter((row) =>
-        matchesFilter(getNestedValue(row, key), query)
+        matchesFilter(getNestedValue(row, key), query),
       );
     });
 
@@ -1435,7 +1435,7 @@ export function DataTableV2<T extends object>({
     if (isServerPagination) return data; // o back já paginado
     return processed.slice(
       (localPage - 1) * localPageSize,
-      localPage * localPageSize
+      localPage * localPageSize,
     );
   }, [processed, localPage, localPageSize, isServerPagination, data]);
 
@@ -1444,7 +1444,7 @@ export function DataTableV2<T extends object>({
     <div
       className={clsx(
         "relative flex flex-col overflow-hidden shadow-sm",
-        className
+        className,
       )}
       style={{
         background: "var(--table-bg)",
@@ -1635,15 +1635,15 @@ export function DataTableV2<T extends object>({
                     className={clsx(
                       "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider select-none transition-colors",
                       col.sortable && "cursor-pointer hover:brightness-95",
-                      col.className
+                      col.className,
                     )}
                     onClick={() => col.sortable && handleSort(key)}
                     aria-sort={
                       dir === "asc"
                         ? "ascending"
                         : dir === "desc"
-                        ? "descending"
-                        : "none"
+                          ? "descending"
+                          : "none"
                     }
                   >
                     <span className="inline-flex items-center gap-0.5">

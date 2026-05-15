@@ -1,7 +1,6 @@
 // src/hooks/use-products.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Provincia } from "@/src/schemas/localidade/provincia-schema";
 import { MunicipioService } from "@/src/services/localidade/municipio";
 import { PaginatedResponse } from "@/src/types";
 import { Municipio } from "@/src/schemas/localidade/municipio-schema";
