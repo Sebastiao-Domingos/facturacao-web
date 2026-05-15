@@ -6,12 +6,16 @@ export const CategoriaDetalhesSchema = z.object({
   id: z.uuid().optional(),
   nome: z.string(),
   descricao: z.string(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
 });
 
 const UnidadeDetalhesSchema = z.object({
   id: z.uuid(),
   sigla: z.string(),
   nome: z.string(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
 });
 
 const TaxaDetalhesSchema = z.object({
@@ -21,6 +25,8 @@ const TaxaDetalhesSchema = z.object({
   descricao: z.string(),
   motivo_isencao: z.string().optional(),
   codigo_isencao_agt: z.string().optional(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
 });
 
 // O Produto Real
@@ -40,6 +46,8 @@ export const productSchema = z.object({
   categoria_detalhes: CategoriaDetalhesSchema,
   unidade_detalhes: UnidadeDetalhesSchema,
   taxa_detalhes: TaxaDetalhesSchema,
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
   // ... podes adicionar taxa_detalhes se precisares na UI
 });
 
