@@ -18,17 +18,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { HeaderPage } from "@/components/header-page";
-import { useUnidades } from "@/src/hooks/configuracao/use-unidade";
+import {
+  useUnidadeMutations,
+  useUnidades,
+} from "@/src/hooks/configuracao/use-unidade";
 import { ErrorComponent } from "@/components/error-component";
 import { Loader } from "@/components/loader";
 import { useState } from "react";
-import { UnidadeForm } from "./unidade-form";
+import { UnidadeForm } from "./forms/unidade-form";
 import { Unidade } from "@/src/schemas/configuracoes/unidade-schema";
+import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
 
 export function UnidadesPage() {
   const [defaultValues, setDefaultValues] = useState<Unidade | undefined>();
   const { data: unidades, isLoading, isError } = useUnidades();
   const [openModal, setOpenModal] = useState(false);
+  const [openModalDelete, setOpenModalDelete] = useState({
+    isopened: false,
+    id: "",
+  });
+  const { deleteMutation } = useUnidadeMutations();
 
   if (isLoading) return <Loader />;
 
@@ -87,7 +96,15 @@ export function UnidadesPage() {
                     >
                       <Edit2 size={12} /> Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="gap-2 font-bold uppercase text-[10px] italic text-destructive">
+                    <DropdownMenuItem
+                      className="gap-2 font-bold uppercase text-[10px] italic text-destructive"
+                      onClick={() => {
+                        setOpenModalDelete({
+                          id: unidade?.id!,
+                          isopened: !openModalDelete.isopened,
+                        });
+                      }}
+                    >
                       <Trash2 size={12} /> Eliminar
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -141,6 +158,23 @@ export function UnidadesPage() {
           onOpenChange={setOpenModal}
           open={openModal}
           defaultValues={defaultValues}
+        />
+      )}
+
+      {openModalDelete.isopened && (
+        <ConfirmDeleteModal
+          isOpen={openModalDelete.isopened}
+          onOpenChange={(e) =>
+            setOpenModalDelete({
+              id: openModalDelete.id,
+              isopened: e,
+            })
+          }
+          onConfirm={() => {
+            deleteMutation.mutateAsync(openModalDelete.id, {
+              onSuccess: () => setOpenModalDelete({ id: "", isopened: false }),
+            });
+          }}
         />
       )}
     </>
