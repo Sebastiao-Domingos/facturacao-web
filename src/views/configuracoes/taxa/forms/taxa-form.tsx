@@ -36,11 +36,11 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
   const form = useForm<Taxa>({
     resolver: zodResolver(TaxaSchema),
     defaultValues: {
-      codigo: "",
-      valor: "",
-      descricao: "",
-      motivo_isencao: "",
-      ...defaultValues,
+      codigo: defaultValues?.codigo || "",
+      codigo_isencao_agt: defaultValues?.codigo_isencao_agt || undefined,
+      descricao: defaultValues?.descricao || "",
+      valor: defaultValues?.valor || 0,
+      motivo_isencao: defaultValues?.motivo_isencao || undefined,
     },
   });
 
