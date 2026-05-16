@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { useTaxas } from "@/src/hooks/configuracao/use-taxa";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { useDebounce } from "../../hooks/use-debounde"; // ← Corrigido
+import { useDebounce } from "../../../hooks/use-debounde"; // ← Corrigido
 import { TaxaModal } from "@/src/components/modals/taxa-modal";
+import { TaxaForm } from "./forms/taxa-form";
+import { Taxa } from "@/src/schemas/configuracoes/taxa-schema";
 
 export default function TaxasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingTaxa, setEditingTaxa] = useState<any>(null);
+  const [editingTaxa, setEditingTaxa] = useState<Taxa | undefined>();
 
   const debouncedSearch = useDebounce(searchTerm, 300);
 
@@ -36,11 +38,11 @@ export default function TaxasPage() {
   const handleSuccess = () => {
     refetch();
     setModalOpen(false);
-    setEditingTaxa(null);
+    setEditingTaxa(undefined);
   };
 
   const openNewModal = () => {
-    setEditingTaxa(null);
+    setEditingTaxa(undefined);
     setModalOpen(true);
   };
 
@@ -69,13 +71,19 @@ export default function TaxasPage() {
           className="h-11 gap-2 shadow-lg shadow-primary/20 font-semibold px-6"
         >
           <PackagePlus size={18} />
-          Nova Taxa
+          Nova
         </Button>
+
+        <TaxaForm
+          onOpenChange={setModalOpen}
+          open={modalOpen}
+          defaultValues={editingTaxa}
+        />
       </HeaderPage>
 
       {/* Regime Fiscal Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent">
+        <div className="p-6 rounded-3xl border border-emerald-500/20 bg-linear-to from-emerald-500/5 to-transparent">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
               <ShieldCheck className="text-emerald-600" size={24} />
@@ -219,14 +227,6 @@ export default function TaxasPage() {
           )}
         </>
       )}
-
-      {/* Modal */}
-      <TaxaModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        defaultValues={editingTaxa}
-        onSuccess={handleSuccess}
-      />
     </div>
   );
 }

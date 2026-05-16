@@ -1,4 +1,4 @@
-import TaxasPage from "@/src/views/configuracoes/taxas";
+import TaxasPage from "@/src/views/configuracoes/taxa/taxas";
 
 export default TaxasPage;
 

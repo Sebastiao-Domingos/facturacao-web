@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TaxaForm } from "../empresa/taxa/taxa-form";
+import { TaxaForm } from "../../views/configuracoes/taxa/forms/taxa-form";
 import { Taxa } from "../../schemas/configuracoes/taxa-schema";
 
 interface TaxaModalProps {
@@ -54,7 +54,7 @@ export function TaxaModal({
           </DialogDescription>
         </DialogHeader>
 
-        <TaxaForm defaultValues={defaultValues} onSubmit={handleSubmit} />
+        {/* <TaxaForm defaultValues={defaultValues} onSubmit={handleSubmit} /> */}
       </DialogContent>
     </Dialog>
   );
