@@ -11,6 +11,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { clsx } from "clsx";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  TYPES
@@ -1600,7 +1601,9 @@ export function DataTableV2<T extends object>({
       )}
 
       {/* ── Table ── */}
-      <div className="overflow-x-auto">
+      {/* <div className="overflow-x-auto"> */}
+      <ScrollArea className="max-w-full overflow-x-auto">
+        <ScrollBar orientation="horizontal" />
         <table className="w-full min-w-max border-collapse text-sm">
           {/* Cabeçalho */}
           <thead>
@@ -1674,7 +1677,10 @@ export function DataTableV2<T extends object>({
               <tr style={{ borderBottom: "1px solid var(--table-border)" }}>
                 {selectable && (
                   <td
-                    style={{ background: "var(--table-header-bg)", width: 44 }}
+                    style={{
+                      background: "var(--table-header-bg)",
+                      width: 44,
+                    }}
                   />
                 )}
                 {visibleColumns.map((col) => {
@@ -1721,7 +1727,10 @@ export function DataTableV2<T extends object>({
                 })}
                 {hasActions && (
                   <td
-                    style={{ background: "var(--table-header-bg)", width: 52 }}
+                    style={{
+                      background: "var(--table-header-bg)",
+                      width: 52,
+                    }}
                   />
                 )}
               </tr>
@@ -1792,7 +1801,8 @@ export function DataTableV2<T extends object>({
             )}
           </tbody>
         </table>
-      </div>
+      </ScrollArea>
+      {/* </div> */}
 
       {/* ── Paginação ── */}
       <Pagination

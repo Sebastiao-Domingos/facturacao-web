@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
 
 interface FormModalProps {
   open: boolean;
@@ -46,4 +47,21 @@ export function FormModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+interface OpenModalProps<T> {
+  isOpened: boolean;
+  defaultValue?: T;
+}
+
+export function useOpenModal<T>() {
+  const [openModal, setOpenModal] = useState<OpenModalProps<T>>({
+    isOpened: false,
+    defaultValue: undefined,
+  });
+
+  return {
+    openModal,
+    setOpenModal,
+  };
 }
