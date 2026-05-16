@@ -34,12 +34,6 @@ export default function TaxasPage() {
     );
   }, [taxas, debouncedSearch]);
 
-  // const handleSuccess = () => {
-  //   refetch();
-  //   setModalOpen(false);
-  //   setEditingTaxa(undefined);
-  // };
-
   const openNewModal = () => {
     setEditingTaxa(undefined);
     setModalOpen(true);
@@ -143,17 +137,6 @@ export default function TaxasPage() {
                           </span>
                         </div>
                       </div>
-
-                      {/* <Badge
-                      className={cn(
-                        "font-medium",
-                        taxa.ativo !== false
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                          : "bg-red-500/10 text-red-600"
-                      )}
-                    >
-                      {taxa.ativo !== false ? "Ativo" : "Inativo"}
-                    </Badge> */}
                     </div>
 
                     <div className="space-y-4">

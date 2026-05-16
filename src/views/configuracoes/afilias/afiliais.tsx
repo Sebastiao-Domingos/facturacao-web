@@ -26,8 +26,10 @@ import { cn } from "@/lib/utils";
 import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { useDebounce } from "../../hooks/use-debounde"; // ← cria este hook se não tiveres
-import { UnidadeForm } from "./unidade/forms/unidade-form";
+import { useDebounce } from "../../../hooks/use-debounde"; // ← cria este hook se não tiveres
+import { UnidadeForm } from "../unidade/forms/unidade-form";
+import { AfilialForm } from "./forms/afilia-form";
+import { Afilias } from "@/src/schemas/empresa/afilias/afilia-schema";
 
 interface Filial {
   id: string;
@@ -45,10 +47,18 @@ interface Filial {
   };
 }
 
+interface OpenModalProps {
+  isOpened: boolean;
+  defaultValue?: Afilias;
+}
+
 export function FiliaisPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useState<OpenModalProps>({
+    isOpened: false,
+    defaultValue: undefined,
+  });
 
   const { data, isLoading, isError } = useAfilia();
 
@@ -82,10 +92,15 @@ export function FiliaisPage() {
         >
           <Button
             className="h-11 gap-2 shadow-lg shadow-primary/20 font-semibold px-6"
-            onClick={() => setOpenModal(!openModal)}
+            onClick={() =>
+              setOpenModal({
+                isOpened: !openModal.isOpened,
+                defaultValue: undefined,
+              })
+            }
           >
             <PackagePlus size={18} />
-            Nova(o)
+            Nova
           </Button>
         </HeaderPage>
 
@@ -171,9 +186,15 @@ export function FiliaisPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-52">
-                          <DropdownMenuItem>Editar Filial</DropdownMenuItem>
-                          <DropdownMenuItem>
-                            Séries de Documentos
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setOpenModal({
+                                isOpened: !openModal.isOpened,
+                                defaultValue: filial,
+                              })
+                            }
+                          >
+                            Editar Filial
                           </DropdownMenuItem>
                           <DropdownMenuItem>Ver Inventário</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">
@@ -270,8 +291,14 @@ export function FiliaisPage() {
         )}
       </div>
 
-      {openModal && (
-        <UnidadeForm onOpenChange={setOpenModal} open={openModal} />
+      {openModal.isOpened && (
+        <AfilialForm
+          onOpenChange={(e) =>
+            setOpenModal({ isOpened: e, defaultValue: undefined })
+          }
+          open={openModal.isOpened}
+          defaultValues={openModal.defaultValue}
+        />
       )}
     </>
   );

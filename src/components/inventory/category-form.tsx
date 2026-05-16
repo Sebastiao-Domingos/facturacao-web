@@ -110,7 +110,7 @@ export function CategoryForm({
               onOpenChange(false);
               form.reset();
             },
-          }
+          },
         );
       } else {
         // Lógica de Criação
@@ -144,13 +144,7 @@ export function CategoryForm({
     }
   }
 
-  // Função para validar em tempo real se o nome já contém apenas espaços
-  const validateNoWhitespaceOnly = (value: string) => {
-    if (value && value.trim().length === 0) {
-      return "O nome não pode conter apenas espaços";
-    }
-    return true;
-  };
+  // Função para validar em tempo real se o nome já contém apenas espaço
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -174,7 +168,7 @@ export function CategoryForm({
               const firstError = Object.keys(errors)[0];
               if (firstError) {
                 const element = document.querySelector(
-                  `[name="${firstError}"]`
+                  `[name="${firstError}"]`,
                 );
                 element?.scrollIntoView({
                   behavior: "smooth",
@@ -202,7 +196,7 @@ export function CategoryForm({
                   <FormLabel
                     className={cn(
                       "font-bold transition-colors flex items-center gap-2",
-                      fieldState.error && "text-destructive"
+                      fieldState.error && "text-destructive",
                     )}
                   >
                     Nome da Categoria
@@ -221,7 +215,7 @@ export function CategoryForm({
                         if (
                           (value.length > 0 &&
                             /^[a-zA-Z0-9áéíóúâêôçãõÀÉÍÓÚÂÊÔÇÃÕ\s\-]+$/.test(
-                              value
+                              value,
                             )) ||
                           value === ""
                         ) {
@@ -239,7 +233,7 @@ export function CategoryForm({
                         !fieldState.error &&
                           fieldState.isDirty &&
                           !fieldState.invalid &&
-                          "border-green-500/50"
+                          "border-green-500/50",
                       )}
                       aria-invalid={fieldState.invalid}
                       aria-describedby={
@@ -268,7 +262,7 @@ export function CategoryForm({
                   <FormLabel
                     className={cn(
                       "font-bold transition-colors",
-                      fieldState.error && "text-destructive"
+                      fieldState.error && "text-destructive",
                     )}
                   >
                     Descrição
@@ -289,7 +283,7 @@ export function CategoryForm({
                         "h-12 transition-all border-2 font-medium",
                         fieldState.error
                           ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive"
-                          : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
+                          : "border-border/60 focus-visible:ring-primary focus-visible:border-primary",
                       )}
                     />
                   </FormControl>
@@ -325,7 +319,7 @@ export function CategoryForm({
                 form="category-form"
                 className={cn(
                   "h-14 font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 flex-1",
-                  !isLoading && "shadow-primary/40 hover:bg-primary/90"
+                  !isLoading && "shadow-primary/40 hover:bg-primary/90",
                 )}
                 disabled={isLoading}
               >

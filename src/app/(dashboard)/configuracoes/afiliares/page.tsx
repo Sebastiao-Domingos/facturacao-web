@@ -1,4 +1,4 @@
-import { FiliaisPage } from "@/src/views/configuracoes/afiliais";
+import { FiliaisPage } from "@/src/views/configuracoes/afilias/afiliais";
 
 export default FiliaisPage;
 

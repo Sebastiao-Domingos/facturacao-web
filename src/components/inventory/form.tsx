@@ -24,7 +24,6 @@ const countries = [
 ];
 
 export function MyForm() {
-  const [selectedUser, setSelectedUser] = useState("");
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
