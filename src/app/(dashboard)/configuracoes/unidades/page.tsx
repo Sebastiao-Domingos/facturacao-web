@@ -1,4 +1,4 @@
-import UnidadesPage from "@/src/views/configuracoes/unidades";
+import { UnidadesPage } from "@/src/views/configuracoes/unidade/unidades";
 
 export default UnidadesPage;
 
