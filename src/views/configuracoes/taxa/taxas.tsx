@@ -1,14 +1,15 @@
+// src/app/(dashboard)/configuracoes/taxas/page.tsx
 "use client";
 
 import { useState, useMemo } from "react";
-import { PackagePlus, ShieldCheck, Percent, Search, Plus } from "lucide-react";
+import { PackagePlus, ShieldCheck, Percent, Search, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useTaxas } from "@/src/hooks/configuracao/use-taxa";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { useDebounce } from "../../../hooks/use-debounde"; // ← Corrigido
+import { useDebounce } from "../../../hooks/use-debounde";
 import { TaxaForm } from "./forms/taxa-form";
 import { Taxa } from "@/src/schemas/configuracoes/taxa-schema";
 
@@ -55,149 +56,149 @@ export default function TaxasPage() {
 
   return (
     <>
-      <div className="space-y-8 p-2 md:p-6">
+      <div className="space-y-6 p-4 md:p-6 bg-background">
         <HeaderPage
           title="Taxas de Imposto & Isenções"
           description="Gerencie as taxas de imposto aplicáveis e os motivos de isenção para diferentes cenários fiscais."
         >
           <Button
             onClick={openNewModal}
-            className="h-11 gap-2 shadow-lg shadow-primary/20 font-semibold px-6"
+            className="h-10 gap-2 font-medium px-4 shadow-sm"
           >
-            <PackagePlus size={18} />
-            Nova
+            <PackagePlus size={16} />
+            Nova Taxa
           </Button>
         </HeaderPage>
 
-        {/* Regime Fiscal Card */}
+        {/* Informações Auxiliares (Regime Fiscal Sólido) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-6 rounded-3xl border border-emerald-500/20 bg-linear-to from-emerald-500/5 to-transparent">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                <ShieldCheck className="text-emerald-600" size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Regime Atual
-                </p>
-                <p className="font-bold text-lg">Regime Geral</p>
-              </div>
+          <div className="p-4 rounded-xl border border-border bg-card shadow-sm flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <ShieldCheck className="text-emerald-600" size={20} />
             </div>
-            <p className="text-sm text-muted-foreground">República de Angola</p>
+            <div className="text-xs">
+              <span className="font-semibold text-muted-foreground block uppercase tracking-wider text-[10px]">
+                Regime Fiscal Atual
+              </span>
+              <p className="font-bold text-foreground text-sm">
+                Regime Geral &bull; AGT
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-            size={20}
-          />
+        {/* Barra de Pesquisa Normal */}
+        <div className="relative max-w-md w-full">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar por código, descrição ou isenção..."
-            className="pl-11 h-12 bg-background border-border/60 focus:border-primary/50"
+            className="pl-9 h-10 bg-background border-input text-sm rounded-md"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {/* Loading State */}
+        {/* Loading State - Skeleton Corporativo */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-64 rounded-3xl bg-muted animate-pulse"
+                className="h-56 rounded-xl border border-border bg-card animate-pulse"
               />
             ))}
           </div>
         ) : (
           <>
             {filteredTaxas.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredTaxas.map((taxa) => (
                   <div
                     key={taxa.id}
-                    className="group relative rounded-3xl border border-border/60 bg-card p-6 hover:border-emerald-500/30 hover:shadow-xl transition-all duration-300"
+                    className="flex flex-col justify-between p-5 rounded-xl border border-border bg-card shadow-sm transition-colors hover:bg-muted/30"
                   >
-                    <div className="flex justify-between items-start mb-5">
-                      <div>
-                        <Badge
-                          variant="outline"
-                          className="font-mono tracking-widest text-xs mb-2"
-                        >
-                          {taxa.codigo}
-                        </Badge>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-black text-emerald-600 tracking-tighter">
-                            {taxa.valor}
-                          </span>
-                          <span className="text-2xl font-bold text-emerald-600">
-                            %
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="space-y-4">
-                      <div>
-                        <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-                          DESCRIÇÃO
-                        </p>
-                        <p className="font-medium leading-snug text-foreground/90">
-                          {taxa.descricao}
-                        </p>
+                      {/* Topo do Card com a Percentagem */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <Badge
+                            variant="outline"
+                            className="font-mono text-xs mb-1.5 px-2 py-0 h-5"
+                          >
+                            {taxa.codigo}
+                          </Badge>
+                          <div className="flex items-baseline text-emerald-600">
+                            <span className="text-3xl font-bold tracking-tight">
+                              {taxa.valor}
+                            </span>
+                            <span className="text-lg font-semibold ml-0.5">
+                              %
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      {taxa.motivo_isencao && (
+                      {/* Descrição e Dados Técnicos */}
+                      <div className="space-y-3">
                         <div>
-                          <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1 flex items-center gap-1">
-                            <ShieldCheck size={14} />
-                            ISENÇÃO / MOTIVO
-                          </p>
-                          <p className="text-sm text-rose-600/80 font-medium">
-                            {taxa.motivo_isencao}
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block mb-0.5">
+                            Descrição
+                          </span>
+                          <p className="text-xs font-medium text-foreground leading-normal">
+                            {taxa.descricao}
                           </p>
                         </div>
-                      )}
+
+                        {taxa.motivo_isencao && (
+                          <div className="pt-2 border-t border-border/60">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider flex items-center gap-1 mb-0.5">
+                              <ShieldCheck
+                                size={12}
+                                className="text-rose-600"
+                              />
+                              Motivo de Isenção
+                            </span>
+                            <p className="text-xs font-medium text-rose-600/90 leading-normal">
+                              {taxa.motivo_isencao}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    {/* Ações Visíveis e Estáveis */}
+                    <div className="pt-4 mt-4 border-t border-border/60 flex justify-end gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
+                        className="h-8 text-xs gap-1.5 px-2.5"
                         onClick={() => openEditModal(taxa)}
                       >
+                        <Edit2 size={12} />
                         Editar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full"
-                      >
-                        <Plus size={18} />
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              /* Empty State */
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="bg-muted rounded-full p-8 mb-6">
-                  <Percent size={64} className="text-muted-foreground/40" />
+              /* Empty State Clássico */
+              <div className="flex flex-col items-center justify-center py-16 border border-dashed border-border rounded-xl bg-card p-8">
+                <div className="bg-muted rounded-full p-4 mb-3">
+                  <Percent size={32} className="text-muted-foreground/50" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-2 text-muted-foreground">
+                <h3 className="text-base font-semibold text-foreground mb-1">
                   Nenhuma taxa encontrada
                 </h3>
-                <p className="text-muted-foreground max-w-xs">
-                  Não foram encontradas taxas com os critérios de pesquisa.
+                <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
+                  Não existem registos tributários correspondentes aos critérios
+                  aplicados.
                 </p>
                 {searchTerm && (
                   <Button
                     variant="outline"
-                    className="mt-6"
+                    size="sm"
+                    className="h-9"
                     onClick={() => setSearchTerm("")}
                   >
                     Limpar pesquisa
@@ -208,6 +209,7 @@ export default function TaxasPage() {
           </>
         )}
       </div>
+
       {modalOpen && (
         <TaxaForm
           onOpenChange={setModalOpen}

@@ -1,3 +1,4 @@
+// src/app/not-found.tsx
 "use client";
 
 import Link from "next/link";
@@ -6,46 +7,44 @@ import { FileQuestion, ChevronLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6">
-      <div className="relative flex flex-col items-center text-center">
-        {/* Background Glow */}
-        <div className="absolute -top-24 h-64 w-64 bg-primary/10 blur-[100px] rounded-full" />
-
-        {/* Icon */}
-        <div className="mb-6 rounded-2xl bg-muted/50 p-6 border border-border/50 backdrop-blur-sm shadow-xl">
-          <FileQuestion size={64} className="text-primary animate-pulse" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="flex flex-col items-center text-center max-w-sm">
+        {/* Ícone Estruturado e Sólido */}
+        <div className="mb-6 rounded-xl bg-muted border border-border p-5 text-muted-foreground shadow-sm">
+          <FileQuestion size={40} />
         </div>
 
-        {/* Text Content */}
-        <h1 className="text-8xl font-black italic tracking-tighter text-primary/20">
-          404
-        </h1>
-        <h2 className="mt-[-40px] text-3xl font-black uppercase tracking-tight">
+        {/* Bloco de Código de Erro e Título */}
+        <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-0.5 rounded-md mb-3">
+          Erro 404
+        </span>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Página não encontrada
-        </h2>
-        <p className="mt-4 max-w-[400px] text-muted-foreground font-medium">
-          O destino que procura parece ter sido movido ou nunca existiu no
-          sistema <span className="text-primary font-bold">DIMBO DC</span>.
+        </h1>
+
+        {/* Descrição Comercial Clara */}
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          O endereço que procura foi movido, eliminado ou não existe no sistema{" "}
+          <span className="text-foreground font-semibold">DIMBO DC</span>.
         </p>
 
-        {/* Action Button */}
-        <div className="mt-10">
+        {/* Botão de Ação Clássico */}
+        <div className="mt-6 w-full">
           <Button
             asChild
-            size="lg"
-            className="h-12 px-8 font-bold shadow-lg shadow-primary/20 gap-2 uppercase tracking-widest transition-all active:scale-95"
+            className="h-10 px-5 font-medium text-sm gap-1.5 shadow-sm w-full sm:w-auto"
           >
             <Link href="/">
-              <ChevronLeft size={18} />
-              Voltar ao Painel
+              <ChevronLeft size={16} />
+              Voltar ao painel principal
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Footer Branding */}
-      <div className="absolute bottom-8 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-        DIMBO DIGITAL CONTROL • SISTEMA DE GESTÃO
+      {/* Rodapé de Marca Simples */}
+      <div className="absolute bottom-6 text-[11px] font-medium text-muted-foreground/60 tracking-normal">
+        DIMBO DC &bull; Sistema de Faturação e Gestão
       </div>
     </div>
   );

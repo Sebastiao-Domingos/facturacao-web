@@ -12,6 +12,9 @@ export const FuncionarioSchema = z.object({
   last_name: z.string().min(2, "No mínimo 2 caracteres"),
   email: z.email({ error: "Email inválido!" }),
   password: z.string().min(8, "No mínimo caracteres"),
+  confirm_password: z.string().refine((value) => {
+    return value.length >= 8;
+  }),
   filial: z.uuid(),
   bi: z.string().regex(/^\d{9}[A-Z]{2}\d{3}$/, {
     error:
@@ -30,7 +33,12 @@ export const FuncionarioCreateSchema = z.object({
   first_name: z.string(),
   last_name: z.string(),
   email: z.email(),
-  password: z.string(),
+  password: z.string().refine((value) => {
+    return value.length >= 8;
+  }),
+  confirm_password: z.string().refine((value) => {
+    return value.length >= 8;
+  }),
   endereco_data: EnderecoSchema,
   bi: z
     .string({

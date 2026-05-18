@@ -15,8 +15,13 @@ export class ProdutoService {
       `${this.endpoint}?page=${page}&search=${search}`,
       {
         params: { page, search },
-      }
+      },
     );
+    return response.data;
+  }
+
+  async get(id: string): Promise<Product> {
+    const response = await api.get<Product>(`${this.endpoint}${id}/`);
     return response.data;
   }
 

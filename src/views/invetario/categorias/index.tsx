@@ -1,7 +1,7 @@
 // src/app/(dashboard)/produtos/page.tsx
 "use client";
 
-import { PackagePlus } from "lucide-react";
+import { PackagePlus, SquareSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
@@ -14,7 +14,6 @@ import { Categoria } from "@/src/schemas/product-schema";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
-import { set } from "zod";
 
 const columns: ColumnDef<Categoria>[] = [
   {
@@ -63,6 +62,7 @@ export function CategoriesPage() {
         <HeaderPage
           title="Categorias"
           description="Gerencie os categorias do seu inventário"
+          Icon={<SquareSquare size={24} className="text-muted-foreground" />}
         >
           <Button
             className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"

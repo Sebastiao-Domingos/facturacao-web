@@ -1,6 +1,6 @@
-import { StocksPage } from "@/src/views/invetario/stocks";
+import { StockPage } from "@/src/views/invetario/stocks";
 
-export default StocksPage;
+export default StockPage;
 
 export const metadata = {
   title: "Stock Crítico",

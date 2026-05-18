@@ -1,7 +1,7 @@
 // src/components/nav-user.tsx
 "use client";
 
-import { BadgeCheck, Bell, LogOut, Sparkles, UserCircle } from "lucide-react";
+import { BadgeCheck, Bell, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,

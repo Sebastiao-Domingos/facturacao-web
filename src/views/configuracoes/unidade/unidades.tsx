@@ -28,6 +28,7 @@ import { useState } from "react";
 import { UnidadeForm } from "./forms/unidade-form";
 import { Unidade } from "@/src/schemas/configuracoes/unidade-schema";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function UnidadesPage() {
   const [defaultValues, setDefaultValues] = useState<Unidade | undefined>();
@@ -39,7 +40,26 @@ export function UnidadesPage() {
   });
   const { deleteMutation } = useUnidadeMutations();
 
-  if (isLoading) return <Loader />;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-4 sm:p-6">
+        <div className="mb-6">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border p-6">
+              <Skeleton className="mx-auto h-16 w-16 rounded-2xl mb-4" />
+              <Skeleton className="h-4 w-24 mx-auto mb-2" />
+              <Skeleton className="h-3 w-32 mx-auto mb-4" />
+              <Skeleton className="h-6 w-20 mx-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (isError) {
     return (
@@ -52,107 +72,114 @@ export function UnidadesPage() {
 
   return (
     <>
-      <div className="space-y-8 p-2">
+      <div className="space-y-6 p-4 sm:p-6">
         <HeaderPage
           title="Unidades de Medida"
           description="Configure as métricas de stock para os seus produtos e serviços."
           totalItens={unidades?.length}
         >
-          <Button
-            className="h-12 gap-3 shadow-xl shadow-primary/20 font-black uppercase tracking-widest px-8 transition-all hover:scale-[1.02] active:scale-95"
-            onClick={() => setOpenModal(!openModal)}
-          >
-            <PackagePlus size={18} />
-            Nova(o)
+          <Button onClick={() => setOpenModal(!openModal)}>
+            <PackagePlus size={16} className="mr-2" />
+            Nova Unidade
           </Button>
         </HeaderPage>
 
-        {/* GRID DE CARDS SEM TABELA */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {unidades?.map((unidade) => (
-            <div
-              key={unidade.id}
-              className="group relative flex flex-col items-center justify-between p-6 rounded-2xl border-2 border-border/40 bg-background/50 backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-1"
-            >
-              {/* Opções (Top Right) */}
-              <div className="absolute top-4 right-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="rounded-full hover:bg-primary/10 h-8 w-8"
-                    >
-                      <MoreVertical size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem
-                      className="gap-2 font-bold uppercase text-[10px] italic"
-                      onClick={() => {
-                        setDefaultValues(unidade);
-                        setOpenModal(!openModal);
-                      }}
-                    >
-                      <Edit2 size={12} /> Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="gap-2 font-bold uppercase text-[10px] italic text-destructive"
-                      onClick={() => {
-                        setOpenModalDelete({
-                          id: unidade?.id!,
-                          isopened: !openModalDelete.isopened,
-                        });
-                      }}
-                    >
-                      <Trash2 size={12} /> Eliminar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Visual Icon (Representação da Sigla) */}
-              <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                  <span className="text-xl font-black text-primary leading-none">
-                    {unidade.sigla}
-                  </span>
-                  <Scale className="absolute -bottom-1 -right-1 h-5 w-5 text-primary/30" />
+        {/* GRID DE CARDS */}
+        {unidades && unidades.length > 0 ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {unidades.map((unidade) => (
+              <div
+                key={unidade.id}
+                className="group relative rounded-lg border border-border bg-card p-6 transition-shadow hover:shadow-md"
+              >
+                {/* Opções (Top Right) */}
+                <div className="absolute right-3 top-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                      >
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDefaultValues(unidade);
+                          setOpenModal(!openModal);
+                        }}
+                      >
+                        <Edit2 size={14} className="mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => {
+                          setOpenModalDelete({
+                            id: unidade?.id!,
+                            isopened: !openModalDelete.isopened,
+                          });
+                        }}
+                      >
+                        <Trash2 size={14} className="mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
-                <div className="text-center">
-                  <h3 className="text-sm font-black uppercase tracking-tighter text-foreground leading-none">
-                    {unidade.nome}
-                  </h3>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                    Métrica de Stock
-                  </p>
+                {/* Conteúdo do Card */}
+                <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+                  {/* Ícone da Sigla */}
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                    <span className="text-xl font-bold text-primary">
+                      {unidade.sigla}
+                    </span>
+                  </div>
+
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold tracking-tight">
+                      {unidade.nome}
+                    </h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Unidade de medida
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer do Card */}
+                <div className="mt-6 flex justify-center border-t border-border pt-4">
+                  <Badge variant="outline" className="text-xs font-mono">
+                    ID: {unidade.id?.slice(0, 8)}
+                  </Badge>
                 </div>
               </div>
-
-              {/* Footer do Card */}
-              <div className="mt-6 w-full pt-4 border-t border-border/20 flex justify-center">
-                <Badge
-                  variant="outline"
-                  className="rounded-full font-mono text-[10px] border-primary/20 text-primary bg-primary/5"
-                >
-                  ID: {unidade.id?.slice(0, 8)}
-                </Badge>
-              </div>
+            ))}
+          </div>
+        ) : (
+          /* Empty State */
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
+            <div className="mb-4 rounded-full bg-muted p-6">
+              <Layers2 size={48} className="text-muted-foreground" />
             </div>
-          ))}
-
-          {/* Empty State visual dentro da Grid */}
-          {unidades?.length === 0 && (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-border/40 rounded-2xl">
-              <Layers2 size={48} className="text-muted-foreground/20 mb-4" />
-              <p className="font-bold text-muted-foreground uppercase tracking-widest text-xs">
-                Nenhuma unidade registada
-              </p>
-            </div>
-          )}
-        </div>
+            <h3 className="mb-2 text-lg font-semibold">
+              Nenhuma unidade registada
+            </h3>
+            <p className="mb-6 max-w-sm text-muted-foreground">
+              Comece por adicionar a primeira unidade de medida para os seus
+              produtos.
+            </p>
+            <Button onClick={() => setOpenModal(!openModal)}>
+              <PackagePlus size={16} className="mr-2" />
+              Adicionar Unidade
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Modals */}
       {openModal && (
         <UnidadeForm
           onOpenChange={setOpenModal}

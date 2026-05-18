@@ -1,6 +1,9 @@
 // src/app/(dashboard)/page.tsx
+"use client";
+
+import { HeaderPage } from "@/components/header-page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Package, Users, Wallet } from "lucide-react";
+import { TrendingUp, Package, Users, Wallet, BarChart2 } from "lucide-react";
 
 const stats = [
   {
@@ -40,14 +43,11 @@ const stats = [
 export function DashboardHome() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">
-          Painel de Controlo
-        </h1>
-        <p className="text-muted-foreground font-medium">
-          Bem-vindo ao resumo das suas operações de hoje.
-        </p>
-      </div>
+      <HeaderPage
+        title="Painel de Controlo"
+        description="Bem-vendo no Painel de Controlo, veja o resumo das suas operações"
+        Icon={<BarChart2 size={20} className="text-muted-foreground" />}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, i) => (
@@ -77,7 +77,7 @@ export function DashboardHome() {
                 <div
                   className={`h-full ${stat.bg.replace(
                     "/10",
-                    ""
+                    "",
                   )} w-[60%] opacity-50`}
                 />
               </div>

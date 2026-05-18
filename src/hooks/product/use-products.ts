@@ -25,7 +25,7 @@ export function useProductMutations() {
 
   // Atualizar Produto
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
       service.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -52,6 +52,17 @@ export function useProducts({
     queryKey: ["products"],
     queryFn: async () => {
       const response = await service.getProdutos({ page, search });
+      return response;
+    },
+    staleTime: 1000 * 60 * 5, // Dados "frescos" por 5 minutos
+  });
+}
+
+export function useProduct(id: string) {
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      const response = await service.get(id);
       return response;
     },
     staleTime: 1000 * 60 * 5, // Dados "frescos" por 5 minutos

@@ -1,3 +1,4 @@
+// src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,13 +8,11 @@ import { z } from "zod";
 import { useAuth } from "@/src/providers/auth-provider";
 import { api } from "@/src/services/api";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { AnimatedBackground } from "@/components/animated-background";
 import {
   Eye,
   EyeOff,
@@ -23,12 +22,11 @@ import {
   ArrowRight,
   Loader2,
   ShieldCheck,
-  CheckCircle2,
 } from "lucide-react";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Obrigatório"),
-  password: z.string().min(1, "Obrigatório"),
+  identifier: z.string().min(1, "O campo utilizador é obrigatório"),
+  password: z.string().min(1, "O campo palavra-passe é obrigatório"),
   rememberMe: z.boolean().optional(),
 });
 
@@ -47,6 +45,9 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      rememberMe: false,
+    },
   });
 
   const rememberMe = watch("rememberMe");
@@ -59,232 +60,172 @@ export default function LoginPage() {
         password: data.password,
       });
       await login(response.data);
-      toast.success("Bem-vindo ao Futuro!");
+      toast.success("Autenticação efetuada com sucesso.");
     } catch (error) {
-      toast.error("Acesso negado", { description: "Credenciais inválidas." });
+      toast.error("Erro na autenticação", {
+        description: "Utilizador ou palavra-passe incorretos.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center p-4 selection:bg-primary/30">
-      <AnimatedBackground />
-
-      <div className="absolute top-8 right-8 z-50">
+    <main className="relative flex min-h-screen w-full items-center justify-center p-4 bg-background">
+      {/* Botão de alternância de tema discreto no topo */}
+      <div className="absolute top-6 right-6 z-50">
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-[2.5rem] border border-white/20 dark:border-white/10 bg-white/40 dark:bg-zinc-950/40 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)]">
-        {/* LADO ESQUERDO: Branding de Impacto */}
-        <div className="relative hidden lg:flex flex-col justify-between p-16 overflow-hidden">
-          {/* Círculos decorativos */}
-          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="relative z-10 flex items-center gap-3"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/40 text-white">
-              <Store size={28} />
+      {/* Container Principal Sólido e Corporativo */}
+      <div className="w-full max-w-4xl grid lg:grid-cols-2 overflow-hidden rounded-xl border border-border bg-card shadow-md">
+        {/* LADO ESQUERDO: Branding Limpo */}
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-muted/40 border-r border-border">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+              <Store size={22} />
             </div>
-            <span className="text-2xl font-black tracking-tight italic">
-              DIMBO DC
-            </span>
-          </motion.div>
-
-          <div className="relative z-10 space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h1 className="text-7xl font-black leading-[0.9] tracking-tighter">
-                Evolua o seu <br />
-                <span className="bg-linear-to-r from-primary via-indigo-500 to-violet-500 bg-clip-text text-transparent italic">
-                  Negócio
-                </span>
-              </h1>
-            </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-lg text-muted-foreground/80 max-w-xs font-medium"
-            >
-              Faturação inteligente e gestão de stock desenhada para a
-              excelência angolana.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 }}
-              className="flex items-center gap-2 text-primary font-bold text-sm bg-primary/10 w-fit px-4 py-2 rounded-full border border-primary/20"
-            >
-              <CheckCircle2 size={16} />
-              <span>Sincronização em Tempo Real</span>
-            </motion.div>
+            <span className="text-xl font-bold tracking-tight">DIMBO DC</span>
           </div>
 
-          <div className="relative z-10 flex items-center gap-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50">
-            <span>Tecnologia & Inovação</span>
-            <div className="h-1 w-1 rounded-full bg-primary" />
-            <span>Angola {new Date().getFullYear()}</span>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              Gestão comercial simplificada.
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Controle de faturação, stock e clientes num painel centralizado em
+              conformidade com as normas locais.
+            </p>
+          </div>
+
+          <div className="text-xs text-muted-foreground/60 font-medium">
+            &copy; {new Date().getFullYear()} DIMBO DC. Todos os direitos
+            reservados.
           </div>
         </div>
 
-        {/* LADO DIREITO: O Formulário Estético */}
-        <div className="relative flex flex-col items-center justify-center p-8 lg:p-16 bg-white/30 dark:bg-zinc-950/30 backdrop-blur-md">
-          <div className="w-full max-w-95 space-y-10">
-            <header className="space-y-3 text-center lg:text-left">
-              <motion.h2
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl font-bold tracking-tight"
-              >
-                Entrar
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="text-muted-foreground font-medium"
-              >
-                Bem-vindo de volta ao seu painel.
-              </motion.p>
-            </header>
+        {/* LADO DIREITO: O Formulário Focado */}
+        <div className="flex flex-col justify-center p-8 lg:p-12 bg-card">
+          <div className="w-full space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                Iniciar Sessão
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Introduza as suas credenciais para aceder ao painel.
+              </p>
+            </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-5">
-                {/* Input Estilizado: User */}
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="space-y-2"
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* Campo Utilizador */}
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="identifier"
+                  className="text-xs font-semibold text-muted-foreground"
                 >
-                  <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                    Utilizador ou Email
-                  </Label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-all" />
-                    <Input
-                      {...register("identifier")}
-                      placeholder="joao.silva"
-                      className="h-12 pl-12 bg-background/50 border-white/10 ring-offset-background focus-visible:ring-2 focus-visible:ring-primary/50 transition-all rounded-xl"
-                    />
-                  </div>
-                  {errors.identifier && (
-                    <span className="text-[10px] font-bold text-destructive uppercase tracking-tight">
-                      {errors.identifier.message}
-                    </span>
-                  )}
-                </motion.div>
-
-                {/* Input Estilizado: Pass */}
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="space-y-2"
-                >
-                  <div className="flex justify-between items-center">
-                    <Label className="text-xs font-bold uppercase tracking-widest opacity-60">
-                      Palavra-passe
-                    </Label>
-                    <button
-                      type="button"
-                      className="text-[10px] font-bold text-primary uppercase hover:underline"
-                    >
-                      Esqueceu?
-                    </button>
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-all" />
-                    <Input
-                      {...register("password")}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="h-12 pl-12 pr-12 bg-background/50 border-white/10 focus-visible:ring-2 focus-visible:ring-primary/50 transition-all rounded-xl"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-3.5 text-muted-foreground hover:text-primary"
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </motion.div>
-
-                {/* Checkbox Moderno */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex items-center gap-3"
-                >
-                  <Checkbox
-                    id="rem"
-                    checked={rememberMe}
-                    onCheckedChange={(v) => setValue("rememberMe", !!v)}
-                    className="h-5 w-5 rounded-md border-white/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  Utilizador ou Email
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="identifier"
+                    {...register("identifier")}
+                    placeholder="ex: joao.silva"
+                    className="h-10 pl-9 bg-background border-input rounded-md focus-visible:ring-primary"
+                    disabled={isSubmitting}
                   />
-                  <Label
-                    htmlFor="rem"
-                    className="text-sm font-medium opacity-70 cursor-pointer"
-                  >
-                    Manter conectado
-                  </Label>
-                </motion.div>
+                </div>
+                {errors.identifier && (
+                  <p className="text-xs font-medium text-destructive">
+                    {errors.identifier.message}
+                  </p>
+                )}
               </div>
 
-              {/* Botão de Elite */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-14 rounded-2xl text-base font-bold shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] bg-primary hover:bg-primary/90"
+              {/* Campo Palavra-passe */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <Label
+                    htmlFor="password"
+                    className="text-xs font-semibold text-muted-foreground"
+                  >
+                    Palavra-passe
+                  </Label>
+                  <button
+                    type="button"
+                    className="text-xs text-primary font-medium hover:underline"
+                  >
+                    Esqueceu a palavra-passe?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    {...register("password")}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className="h-10 pl-9 pr-10 bg-background border-input rounded-md focus-visible:ring-primary"
+                    disabled={isSubmitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs font-medium text-destructive">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Opção Manter Conectado */}
+              <div className="flex items-center gap-2 pt-1">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(v) => setValue("rememberMe", !!v)}
+                  className="rounded border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <Label
+                  htmlFor="rememberMe"
+                  className="text-sm font-medium text-muted-foreground cursor-pointer select-none"
                 >
-                  <AnimatePresence mode="wait">
-                    {isSubmitting ? (
-                      <motion.div
-                        key="l"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-2"
-                      >
-                        <Loader2 className="animate-spin h-5 w-5" />
-                        <span>A Validar...</span>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="t"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-2"
-                      >
-                        <span>Entrar no Sistema</span>
-                        <ArrowRight size={20} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Button>
-              </motion.div>
+                  Manter a sessão iniciada
+                </Label>
+              </div>
+
+              {/* Botão de Submissão Estático */}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-10 mt-2 font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 rounded-md shadow-sm"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin h-4 w-4" />
+                    <span>A autenticar...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-1">
+                    <span>Entrar</span>
+                    <ArrowRight size={16} />
+                  </div>
+                )}
+              </Button>
             </form>
 
-            <footer className="pt-4 text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-tighter border border-emerald-500/20">
-                <ShieldCheck size={12} />
-                Proteção AES-256 Ativa
+            {/* Rodapé de Segurança Simples */}
+            <div className="pt-4 flex justify-center border-t border-border/60">
+              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                <ShieldCheck size={14} className="text-muted-foreground/80" />
+                Conexão cifrada e segura
               </div>
-            </footer>
+            </div>
           </div>
         </div>
       </div>

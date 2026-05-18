@@ -5,9 +5,13 @@ import { useState } from "react";
 import { useProducts } from "@/src/hooks/product/use-products";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { ProductForm } from "@/src/components/inventory/product-form";
-import DataTable, { ColumnDef } from "@/components/table/DataTable";
 import { Product } from "@/src/schemas/product-schema";
+import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
+import { ProdutoForm } from "./forms/produto-form";
+import { useOpenModal } from "@/src/components/modals/form-model-shared";
+import { Button } from "@/components/ui/button";
+import { PackagePlus } from "lucide-react";
+import { redirect, usePathname } from "next/navigation";
 
 const columns: ColumnDef<Product>[] = [
   {
@@ -116,8 +120,10 @@ const columns: ColumnDef<Product>[] = [
 ];
 
 export function ProductsPage() {
+  const pathname = usePathname();
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useProducts({ page });
+  const { openModal, setOpenModal } = useOpenModal<Product>();
 
   if (isError) {
     return (
@@ -134,22 +140,52 @@ export function ProductsPage() {
         title="Produtos"
         description="Gerencie os produtos do seu inventário"
       >
-        <ProductForm />
+        <Button
+          className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
+          onClick={() =>
+            setOpenModal({ isOpened: true, defaultValue: undefined })
+          }
+        >
+          <PackagePlus size={18} />
+          Nova
+        </Button>
       </HeaderPage>
 
       {/* Tabela de Elite */}
-      <DataTable
+      <DataTableV2
         data={data?.results || []} // A API devolve { results: [...] }
         columns={columns}
         caption="Produtos"
         loading={isLoading}
         defaultPageSize={10}
         pageSizeOptions={[10, 25, 50]}
+        actions={["view", "edit"]}
+        onEdit={(row) => setOpenModal({ isOpened: true, defaultValue: row })}
+        onView={(row) => redirect(`${pathname}/${row.id}`)}
         globalSearch
         columnToggle
         emptyMessage="Nenhum produto encontrado."
         onRowClick={(row) => console.log("Produto:", row)}
       />
+
+      {openModal.isOpened && (
+        <ProdutoForm
+          isOpen={openModal.isOpened}
+          initialData={openModal.defaultValue}
+          onOpenChange={(value) =>
+            setOpenModal({
+              isOpened: value,
+              defaultValue: openModal.defaultValue,
+            })
+          }
+          onSuccess={() =>
+            setOpenModal({
+              isOpened: false,
+              defaultValue: openModal.defaultValue,
+            })
+          }
+        />
+      )}
     </div>
   );
 }

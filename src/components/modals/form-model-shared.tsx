@@ -28,21 +28,20 @@ export function FormModal({
 }: FormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-150 border-border/60 shadow-2xl overflow-hidden max-h-[95vh]">
+      <DialogContent className="sm:max-w-lg max-h-[95vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-primary">
-            {edit ? `Editar dados do(a) ${item}` : `Criar novo(a) ${item}`}
+          <DialogTitle className="text-xl font-semibold">
+            {edit ? `Editar ${item}` : `Novo ${item}`}
           </DialogTitle>
-          <DialogDescription className="font-medium text-muted-foreground">
-            Introduza os dados do(a) {item} cuidadosamente.
+          <DialogDescription>
+            Preencha os dados do(a) {item} abaixo.
           </DialogDescription>
-          {/* Indicador de campos obrigatórios */}
-          <p className="text-xs text-red-500 text-center">
+          <p className="text-xs text-muted-foreground">
             * Campos marcados são obrigatórios
           </p>
         </DialogHeader>
-        <ScrollArea className="max-h-[72vh] overflow-y-auto">
-          <div>{children}</div>
+        <ScrollArea className="max-h-[70vh] overflow-y-auto">
+          <div className="p-1">{children}</div>
         </ScrollArea>
       </DialogContent>
     </Dialog>

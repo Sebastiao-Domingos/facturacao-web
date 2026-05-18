@@ -1,11 +1,12 @@
 import { Stock } from "@/src/schemas/empresa/afilias/stock-schema";
 import { api } from "../../api";
+import { PaginatedResponse } from "@/src/types";
 
 export class StockService {
-  readonly endpoint = "/faturacao/stock/";
+  readonly endpoint = "/faturacao/stocks/";
 
-  async get(): Promise<Stock[]> {
-    const response = await api.get<Stock[]>(this.endpoint);
+  async get(): Promise<PaginatedResponse<Stock>> {
+    const response = await api.get<PaginatedResponse<Stock>>(this.endpoint);
     return response.data;
   }
 

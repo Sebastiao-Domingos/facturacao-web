@@ -13,6 +13,7 @@ import {
   Home,
   Scale,
   Square,
+  SquareSquare,
 } from "lucide-react";
 
 interface NavItem {
@@ -34,9 +35,9 @@ export const data: { navMain: NavItem[] } = {
       url: "/invetario",
       icon: Package,
       items: [
-        { title: "Lista de Produtos", url: "/produtos", icon: Layers },
-        { title: "Categorias", url: "/categorias", icon: Settings },
-        { title: "Stock Crítico", url: "/stocks", icon: TrendingUp },
+        { title: "Produtos", url: "/produtos", icon: Layers },
+        { title: "Categorias", url: "/categorias", icon: SquareSquare },
+        { title: "Stocks", url: "/stocks", icon: TrendingUp },
       ],
     },
     {

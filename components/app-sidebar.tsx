@@ -27,6 +27,7 @@ import {
 import { NavUser } from "./nav-user";
 import { useAuth } from "@/src/providers/auth-provider";
 import { data } from "@/data/menu";
+import { cn } from "@/lib/utils";
 
 export function AppSidebar() {
   const { user } = useAuth();
@@ -38,20 +39,18 @@ export function AppSidebar() {
     <Sidebar
       variant="floating"
       collapsible="icon"
-      className="border-r border-border/40 bg-sidebar/50 backdrop-blur-xl"
+      className="border-r border-border bg-sidebar"
     >
-      {/* Header Corrigido para Centro Perfeito */}
-      <SidebarHeader className="h-20 flex flex-row items-center group-data-[collapsible=icon]:justify-center px-4 group-data-[collapsible=icon]:px-0">
+      {/* Header */}
+      <SidebarHeader className="flex h-20 flex-row items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30 text-primary-foreground">
-            <Store size={22} strokeWidth={2.5} />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Store size={20} />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col leading-none animate-in fade-in slide-in-from-left-2 transition-all">
-              <span className="font-black text-lg tracking-tighter uppercase italic">
-                Dimbo DC
-              </span>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <div className="flex flex-col leading-none">
+              <span className="text-base font-bold">Dimbo DC</span>
+              <span className="text-[10px] text-muted-foreground">
                 Enterprise
               </span>
             </div>
@@ -61,7 +60,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-3 group-data-[collapsible=icon]:px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 px-2 mb-4 group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel className="mb-4 px-2 text-[10px] font-semibold uppercase text-muted-foreground group-data-[collapsible=icon]:hidden">
             Gestão Operacional
           </SidebarGroupLabel>
 
@@ -83,30 +82,31 @@ export function AppSidebar() {
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
                             tooltip={item.title}
-                            className={`h-11 transition-all group-data-[collapsible=icon]:justify-center cursor-pointer ${
-                              isActive
-                                ? "bg-primary/5 text-primary"
-                                : "hover:bg-primary/10"
-                            }`}
+                            className={cn(
+                              "h-11 cursor-pointer transition-all group-data-[collapsible=icon]:justify-center",
+                              isActive && "bg-primary/10 text-primary",
+                              !isActive && "hover:bg-muted",
+                            )}
                           >
                             {item.icon && (
                               <item.icon
-                                className={`shrink-0 ${
+                                className={cn(
+                                  "shrink-0",
                                   isActive
                                     ? "text-primary"
-                                    : "text-muted-foreground"
-                                }`}
+                                    : "text-muted-foreground",
+                                )}
                               />
                             )}
-                            <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                            <span className="font-medium group-data-[collapsible=icon]:hidden">
                               {item.title}
                             </span>
-                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
 
-                        <CollapsibleContent className="group-data-[collapsible=icon]:hidden animate-in slide-in-from-top-1">
-                          <SidebarMenuSub className="ml-4 mt-1 border-l border-primary/20 gap-1">
+                        <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
+                          <SidebarMenuSub className="ml-4 mt-1 gap-1 border-l border-border">
                             {item.items.map((subItem) => (
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
@@ -122,10 +122,10 @@ export function AppSidebar() {
                                     {subItem.icon && (
                                       <subItem.icon
                                         size={14}
-                                        className="opacity-70 shrink-0"
+                                        className="shrink-0"
                                       />
                                     )}
-                                    <span className="text-sm font-medium">
+                                    <span className="text-sm">
                                       {subItem.title}
                                     </span>
                                   </Link>
@@ -139,21 +139,23 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         tooltip={item.title}
-                        className={`h-11 transition-all group-data-[collapsible=icon]:justify-center ${
+                        className={cn(
+                          "h-11 transition-all group-data-[collapsible=icon]:justify-center",
                           pathname === item.url
-                            ? "bg-primary/5 text-primary ring-1 ring-primary/20"
-                            : "hover:bg-primary/10"
-                        }`}
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-muted",
+                        )}
                       >
                         <Link href={item.url}>
                           <item.icon
-                            className={`shrink-0 ${
+                            className={cn(
+                              "shrink-0",
                               pathname === item.url
                                 ? "text-primary"
-                                : "text-muted-foreground"
-                            }`}
+                                : "text-muted-foreground",
+                            )}
                           />
-                          <span className="font-bold tracking-tight group-data-[collapsible=icon]:hidden">
+                          <span className="font-medium group-data-[collapsible=icon]:hidden">
                             {item.title}
                           </span>
                         </Link>
@@ -167,18 +169,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2 bg-sidebar-accent/30 border-t border-border/40">
+      <SidebarFooter className="border-t border-border bg-sidebar p-2 group-data-[collapsible=icon]:p-2">
         <NavUser user={user!} />
 
         {!isCollapsed && (
-          <div className="flex flex-col items-center gap-1 opacity-40 py-2">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[9px] font-black tracking-[0.2em] uppercase">
-                Sistema Ativo
-              </span>
-            </div>
-            <span className="text-[8px] font-medium italic">
+          <div className="mt-2 flex flex-col items-center gap-1 py-1">
+            <span className="text-[9px] font-medium uppercase text-muted-foreground">
+              Sistema Ativo
+            </span>
+            <span className="text-[8px] text-muted-foreground">
               Luanda, Angola • v2.0.6
             </span>
           </div>

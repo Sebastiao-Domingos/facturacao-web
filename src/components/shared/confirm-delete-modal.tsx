@@ -35,54 +35,49 @@ export function ConfirmDeleteModal({
 }: ConfirmDeleteModalProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-100 border-2 border-destructive/20 shadow-2xl">
-        <AlertDialogHeader className="flex flex-col items-center text-center">
-          {/* Icon de Aviso Animado */}
-          <div className="mb-4 rounded-full bg-destructive/10 p-4 text-destructive ring-8 ring-destructive/5">
-            <AlertTriangle
-              size={32}
-              strokeWidth={2.5}
-              className="animate-pulse"
-            />
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          {/* Ícone de Aviso */}
+          <div className="mb-4 flex items-center justify-center">
+            <div className="rounded-full bg-destructive/10 p-3 text-destructive">
+              <AlertTriangle size={28} strokeWidth={2} />
+            </div>
           </div>
 
-          <AlertDialogTitle className="text-2xl font-black uppercase italic tracking-tighter">
+          <AlertDialogTitle className="text-center text-xl font-semibold">
             {title}
           </AlertDialogTitle>
 
-          <AlertDialogDescription className="text-muted-foreground font-medium">
+          <AlertDialogDescription className="text-center">
             {description}
             {itemName && (
-              <span className="block mt-2 font-black text-foreground uppercase italic bg-muted py-1 px-2 rounded border border-border/40">
-                "{itemName}"
+              <span className="mt-2 block rounded border border-border bg-muted px-2 py-1 font-mono text-sm font-medium">
+                {itemName}
               </span>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <AlertDialogFooter className="flex-col sm:flex-row gap-3 mt-6">
-          <AlertDialogCancel
-            disabled={isLoading}
-            className="flex-1 h-12 font-bold uppercase tracking-widest border-2 hover:bg-muted transition-all"
-          >
+        <AlertDialogFooter className="mt-6 flex-col gap-3 sm:flex-row">
+          <AlertDialogCancel disabled={isLoading} className="flex-1">
             Cancelar
           </AlertDialogCancel>
 
           <AlertDialogAction
             onClick={(e) => {
-              e.preventDefault(); // Evita fechar antes da mutation terminar
+              e.preventDefault();
               onConfirm();
             }}
             disabled={isLoading}
             className={cn(
               buttonVariants({ variant: "destructive" }),
-              "flex-1 h-12 font-black uppercase tracking-widest shadow-lg shadow-destructive/20 gap-2 transition-all active:scale-95",
+              "flex-1 gap-2",
             )}
           >
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Trash2 size={18} strokeWidth={2.5} />
+              <Trash2 size={16} strokeWidth={2} />
             )}
             Eliminar
           </AlertDialogAction>

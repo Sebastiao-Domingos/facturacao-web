@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Navigation,
   ShieldCheck,
-  Building,
   PackagePlus,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,26 +25,9 @@ import { cn } from "@/lib/utils";
 import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { useDebounce } from "../../../hooks/use-debounde"; // ← cria este hook se não tiveres
-import { UnidadeForm } from "../unidade/forms/unidade-form";
+import { useDebounce } from "../../../hooks/use-debounde";
 import { AfilialForm } from "./forms/afilia-form";
 import { Afilias } from "@/src/schemas/empresa/afilias/afilia-schema";
-
-interface Filial {
-  id: string;
-  nome: string;
-  empresa_nome: string;
-  codigo_agt: string;
-  e_sede: boolean;
-  serie_documentos: string;
-  endereco: {
-    rua: string;
-    bairro: string;
-    municipio_nome: string;
-    provincia_nome: string;
-    ponto_referencia: string;
-  };
-}
 
 interface OpenModalProps {
   isOpened: boolean;
@@ -85,13 +67,13 @@ export function FiliaisPage() {
 
   return (
     <>
-      <div className="space-y-8 p-2 md:p-6">
+      <div className="space-y-6 p-4 md:p-6 bg-background">
         <HeaderPage
           title="Filiais & Pontos de Venda"
           description="Gerencie as localizações e séries de faturação da sua empresa."
         >
           <Button
-            className="h-11 gap-2 shadow-lg shadow-primary/20 font-semibold px-6"
+            className="h-10 gap-2 font-medium px-4 shadow-sm"
             onClick={() =>
               setOpenModal({
                 isOpened: !openModal.isOpened,
@@ -99,79 +81,73 @@ export function FiliaisPage() {
               })
             }
           >
-            <PackagePlus size={18} />
-            Nova
+            <PackagePlus size={16} />
+            Novo(a)
           </Button>
         </HeaderPage>
 
-        {/* Search + Stats */}
+        {/* Search + Stats (Barra de ferramentas limpa) */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="relative group max-w-md w-full">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-muted-foreground">
-              <Search size={20} />
-            </div>
+          <div className="relative max-w-md w-full">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Pesquisar por nome, município ou código AGT..."
-              className="h-12 pl-12 bg-background border-border/60 focus:border-primary/50 text-base"
+              className="h-10 pl-9 bg-background border-input text-sm rounded-md"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="text-sm text-muted-foreground font-medium">
+          <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
             {filteredFiliais.length} de {data?.length || 0} filiais
           </div>
         </div>
 
-        {/* Loading State - Skeleton */}
+        {/* Loading State - Skeleton Normal */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-95 rounded-4xl bg-muted/50 animate-pulse"
+                className="h-64 rounded-xl border border-border bg-card animate-pulse"
               />
             ))}
           </div>
         ) : (
           <>
-            {/* Grid de Filiais */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Grid de Filiais Normalizada */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredFiliais.map((filial) => (
                 <div
                   key={filial.id}
                   className={cn(
-                    "group relative overflow-hidden rounded-4xl border p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card",
-                    filial.e_sede
-                      ? "border-primary/30 bg-linear-to-br from-primary/3 to-transparent"
-                      : "border-border/60 hover:border-border",
+                    "relative flex flex-col justify-between p-5 rounded-xl border bg-card shadow-sm transition-colors hover:bg-muted/30",
+                    filial.e_sede ? "border-primary/50" : "border-border",
                   )}
                 >
-                  {/* Decorative Background */}
-                  <div className="absolute -right-10 -top-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Building size={140} strokeWidth={0.8} />
-                  </div>
-
-                  <div className="relative flex flex-col h-full">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-5">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl font-bold tracking-tight">
+                  <div className="space-y-4">
+                    {/* Header do Card */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-semibold text-foreground tracking-tight">
                             {filial.nome}
                           </h3>
                           {filial.e_sede && (
                             <Badge
                               variant="default"
-                              className="text-[10px] font-bold tracking-widest px-2.5 py-0.5"
+                              className="text-[10px] font-semibold px-2 py-0 h-4 bg-primary text-primary-foreground uppercase rounded"
                             >
-                              SEDE
+                              Sede
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground font-mono mt-1 flex items-center gap-1.5">
-                          <ShieldCheck size={13} />
-                          {filial.codigo_agt}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                          <ShieldCheck
+                            size={14}
+                            className="text-muted-foreground/70"
+                          />
+                          AGT: {filial.codigo_agt}
                         </p>
                       </div>
 
@@ -180,12 +156,12 @@ export function FiliaisPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-muted"
+                            className="h-8 w-8 rounded-md hover:bg-muted"
                           >
-                            <MoreHorizontal size={18} />
+                            <MoreHorizontal size={16} />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             onClick={() =>
                               setOpenModal({
@@ -204,82 +180,84 @@ export function FiliaisPage() {
                       </DropdownMenu>
                     </div>
 
-                    {/* Endereço */}
-                    <div className="bg-muted/50 rounded-2xl p-5 space-y-4 flex-1">
-                      <div className="flex gap-3">
-                        <MapPin className="text-primary mt-0.5" size={20} />
-                        <div className="text-sm">
-                          <p className="font-semibold leading-snug">
+                    {/* Endereço Sólido */}
+                    <div className="bg-muted/60 border border-border/60 rounded-lg p-4 space-y-3">
+                      <div className="flex gap-2.5">
+                        <MapPin
+                          className="text-muted-foreground shrink-0 mt-0.5"
+                          size={16}
+                        />
+                        <div className="text-xs leading-normal">
+                          <p className="font-medium text-foreground">
                             {filial.endereco.rua}, {filial.endereco.bairro}
                           </p>
-                          <p className="text-muted-foreground">
-                            {filial.endereco.municipio_nome} •{" "}
+                          <p className="text-muted-foreground mt-0.5">
+                            {filial.endereco.municipio_nome} &bull;{" "}
                             {filial.endereco.provincia_nome}
                           </p>
                         </div>
                       </div>
 
                       {filial.endereco.ponto_referencia && (
-                        <div className="flex gap-3 pt-3 border-t border-border/50">
+                        <div className="flex gap-2.5 pt-2.5 border-t border-border/60">
                           <Navigation
-                            size={18}
-                            className="text-muted-foreground mt-0.5"
+                            className="text-muted-foreground shrink-0 mt-0.5"
+                            size={14}
                           />
-                          <div>
-                            <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                          <div className="text-xs">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground/80 block">
                               Referência
-                            </p>
-                            <p className="text-sm text-foreground/90">
+                            </span>
+                            <p className="text-muted-foreground mt-0.5">
                               {filial.endereco.ponto_referencia}
                             </p>
                           </div>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    {/* Footer */}
-                    <div className="flex items-end justify-between pt-6 mt-auto">
-                      <div>
-                        <span className="text-xs uppercase tracking-widest text-muted-foreground block">
-                          Série
-                        </span>
-                        <span className="font-bold text-xl text-primary tracking-tighter">
-                          {filial.serie_documentos}
-                        </span>
-                      </div>
-
-                      <Button
-                        variant="link"
-                        className="group/btn p-0 h-auto font-semibold text-sm flex items-center gap-1 hover:text-primary"
-                      >
-                        Inventário
-                        <ArrowUpRight
-                          size={16}
-                          className="transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5"
-                        />
-                      </Button>
+                  {/* Footer do Card */}
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/60">
+                    <div className="text-xs">
+                      <span className="text-[10px] font-medium uppercase text-muted-foreground block">
+                        Série
+                      </span>
+                      <span className="font-bold text-sm text-foreground">
+                        {filial.serie_documentos}
+                      </span>
                     </div>
+
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-medium text-xs text-primary flex items-center gap-1 hover:underline"
+                    >
+                      Inventário
+                      <ArrowUpRight size={14} />
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Empty State Melhorado */}
+            {/* Empty State Tradicional */}
             {filteredFiliais.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="bg-muted/70 rounded-full p-8 mb-6">
-                  <Building2 size={64} className="text-muted-foreground/40" />
-                </div>
-                <h3 className="text-2xl font-semibold text-muted-foreground mb-2">
+              <div className="flex flex-col items-center justify-center py-16 border border-dashed border-border rounded-xl bg-card p-8">
+                <Building2
+                  size={40}
+                  className="text-muted-foreground/40 mb-3"
+                />
+                <h3 className="text-base font-semibold text-foreground mb-1">
                   Nenhuma filial encontrada
                 </h3>
-                <p className="text-muted-foreground max-w-sm">
-                  Não encontramos nenhuma filial com os critérios de pesquisa.
+                <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
+                  Não existem registos que correspondam aos termos pesquisados.
                 </p>
                 {searchTerm && (
                   <Button
                     variant="outline"
-                    className="mt-6"
+                    size="sm"
+                    className="h-9"
                     onClick={() => setSearchTerm("")}
                   >
                     Limpar pesquisa
