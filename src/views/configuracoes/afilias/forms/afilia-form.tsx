@@ -56,7 +56,12 @@ export function AfilialForm({
   });
 
   return (
-    <FormModal item="fialial" onOpenChange={onOpenChange} open={open}>
+    <FormModal
+      item="fialial"
+      onOpenChange={onOpenChange}
+      open={open}
+      edit={defaultValues !== undefined}
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-1 gap-5">

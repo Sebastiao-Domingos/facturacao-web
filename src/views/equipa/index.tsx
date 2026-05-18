@@ -8,6 +8,7 @@ import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { useFuncionario } from "@/src/hooks/empresa/use-funcionario";
 import { Funcionario } from "@/src/schemas/empresa/afilias/funcionario-schema";
 import { DownloadIcon, PackagePlus, TrashIcon } from "lucide-react";
+import { FuncionarioForm } from "./forms/funcionario-form";
 
 const columns = [
   {
@@ -100,8 +101,10 @@ export function ProdutosCrud() {
             },
           ]}
           actions={["view", "edit"]}
-          onView={(row) => console.log("Visualizar:", row)}
-          onEdit={(row) => console.log("Editar:", row)}
+          onView={(row) => console.log(row)}
+          onEdit={(row) =>
+            setOpenModal({ isOpened: !openModal.isOpened, defaultValue: row })
+          }
           loading={isLoading}
           showCount
           caption="Lista dos funcionários"
@@ -113,6 +116,16 @@ export function ProdutosCrud() {
           onRowClick={(row) => console.log("Clicou na linha:", row)}
         />
       </div>
+
+      {openModal.isOpened && (
+        <FuncionarioForm
+          onOpenChange={(e) =>
+            setOpenModal({ isOpened: e, defaultValue: openModal.defaultValue })
+          }
+          open={openModal.isOpened}
+          defaultValues={openModal.defaultValue}
+        />
+      )}
     </>
   );
 }

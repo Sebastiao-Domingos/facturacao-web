@@ -51,5 +51,5 @@ export function useCategoryMutations() {
     },
   });
 
-  return { createMutation, updateMutation };
+  return { createMutation, updateMutation, deleteMutation };
 }

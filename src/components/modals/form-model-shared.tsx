@@ -28,7 +28,7 @@ export function FormModal({
 }: FormModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-112.5 border-border/60 shadow-2xl overflow-hidden max-h-[95vh]">
+      <DialogContent className="sm:max-w-150 border-border/60 shadow-2xl overflow-hidden max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-primary">
             {edit ? `Editar dados do(a) ${item}` : `Criar novo(a) ${item}`}
@@ -52,6 +52,8 @@ export function FormModal({
 interface OpenModalProps<T> {
   isOpened: boolean;
   defaultValue?: T;
+  isOpenedDeleteModal?: boolean;
+  id?: string;
 }
 
 export function useOpenModal<T>() {

@@ -15,7 +15,7 @@ export class FuncionarioService {
     return response.data;
   }
 
-  async create(data: FuncionarioCreate): Promise<Funcionario> {
+  async create(data: Funcionario): Promise<Funcionario> {
     const response = await api.post<Funcionario>(this.endpoint, data);
     return response.data;
   }

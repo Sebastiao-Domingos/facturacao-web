@@ -24,7 +24,7 @@ export function useFuncionarioMutations() {
 
   // Criar Produto
   const createMutation = useMutation({
-    mutationFn: (newData: FuncionarioCreate) => service.create(newData),
+    mutationFn: (newData: Funcionario) => service.create(newData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
       toast.success("Funcionario criado com sucesso!");

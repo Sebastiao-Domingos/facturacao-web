@@ -1,20 +1,29 @@
 import z from "zod";
 import { EnderecoSchema } from "../../localidade/municipio-schema";
 
+const papeis = ["SUPERADMIN", "ADMIN", "GESTOR", "OPERADOR", "CONTABILISTA"];
+
 export const FuncionarioSchema = z.object({
   id: z.uuid().optional(),
   nome_complento: z.string().optional(),
   user: z.email().optional(),
-  filial_nome: z.string(),
+  filial_nome: z.string().optional(),
+  first_name: z.string().min(2, "No mínimo 2 caracteres"),
+  last_name: z.string().min(2, "No mínimo 2 caracteres"),
+  email: z.email({ error: "Email inválido!" }),
+  password: z.string().min(8, "No mínimo caracteres"),
   filial: z.uuid(),
-  bi: z.string(),
+  bi: z.string().regex(/^\d{9}[A-Z]{2}\d{3}$/, {
+    error:
+      "O formato do BI deve ser 000000000XX000 (9 números, 2 letras, 3 números)",
+  }),
   cargo: z.string(),
   telemovel: z.string(),
-  papel: z.string(),
+  papel: z.enum(papeis, { error: "Papel inválido!" }),
   ativo: z.boolean(),
   endereco: EnderecoSchema,
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  created_at: z.date().or(z.string()).optional(),
+  updated_at: z.date().or(z.string()).optional(),
 });
 
 export const FuncionarioCreateSchema = z.object({
@@ -47,3 +56,17 @@ export const FuncionarioCreateSchema = z.object({
 export type Funcionario = z.infer<typeof FuncionarioSchema>;
 
 export type FuncionarioCreate = z.infer<typeof FuncionarioCreateSchema>;
+
+/***
+ * 
+ * 
+ * 
+ *     ROLES = (
+        ('SUPERADMIN', 'Administrador'),
+        ('ADMIN', 'Administrador de Filial'),
+        ('GESTOR', 'Gestor de Filial'),
+        ('OPERADOR', 'Operador de Caixa'),
+        ('CONTABILISTA', 'Contabilista'),
+    )
+
+ */
