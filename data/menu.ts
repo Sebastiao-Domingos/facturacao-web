@@ -86,6 +86,11 @@ export const data: { navMain: NavItem[] } = {
       ],
     },
     {
+      title: "Clientes",
+      url: "/clientes",
+      icon: Users,
+    },
+    {
       title: "Configurações",
       url: "/configuracoes",
       icon: Settings,
