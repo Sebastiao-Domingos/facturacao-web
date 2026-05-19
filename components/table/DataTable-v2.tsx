@@ -38,17 +38,21 @@ export type BuiltinAction = "view" | "edit" | "delete";
 /** Acção personalizada */
 export interface CustomAction<T> {
   key: string;
-  label: string;
-  icon?: React.ReactNode;
+  label: string | ((row: T) => string);
+  icon?: React.ReactNode | ((row: T) => React.ReactNode);
   /** Ocultar acção para linhas específicas */
   hidden?: (row: T) => boolean;
   /** Desactivar acção para linhas específicas */
   disabled?: (row: T) => boolean;
   /** Cor do item no menu: default | danger | warning | success */
-  variant?: "default" | "danger" | "warning" | "success";
+  variant?:
+    | "default"
+    | "danger"
+    | "warning"
+    | "success"
+    | ((row: T) => "default" | "danger" | "warning" | "success");
   onClick: (row: T) => void;
 }
-
 /** Configuração de paginação do servidor */
 export interface ServerPaginationConfig {
   /** Total real de itens (vem do back) */
@@ -604,7 +608,12 @@ function ActionMenu<T extends object>({
             .filter((a) => !a.hidden?.(row))
             .map((action) => {
               const isDisabled = action.disabled?.(row) ?? false;
-              const color = VARIANT_COLORS[action.variant ?? "default"];
+              const color =
+                VARIANT_COLORS[
+                  typeof action.variant == "function"
+                    ? action.variant(row)
+                    : action.variant || "default"
+                ];
               return (
                 <button
                   key={action.key}
@@ -628,10 +637,14 @@ function ActionMenu<T extends object>({
                 >
                   {action.icon && (
                     <span style={{ color: "var(--table-muted)" }}>
-                      {action.icon}
+                      {typeof action.icon === "function"
+                        ? action.icon(row)
+                        : action.icon}
                     </span>
                   )}
-                  {action.label}
+                  {typeof action.label === "function"
+                    ? action.label(row)
+                    : action.label}
                 </button>
               );
             })}
@@ -685,8 +698,12 @@ function BulkBar<T extends object>({
               color: "var(--primary)",
             }}
           >
-            {action.icon}
-            {action.label}
+            {typeof action.icon === "function"
+              ? action.icon(selectedRows)
+              : action.icon}
+            {typeof action.label === "function"
+              ? action.label(selectedRows)
+              : action.label}
           </button>
         ))}
 

@@ -1,3 +1,3 @@
-import { ProdutosCrud } from "@/src/views/equipa";
+import { FuncionariosPage } from "@/src/views/equipa";
 
-export default ProdutosCrud;
+export default FuncionariosPage;

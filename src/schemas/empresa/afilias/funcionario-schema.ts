@@ -1,80 +1,110 @@
+// src/schemas/empresa/afilias/funcionario-schema.ts
 import z from "zod";
-import { EnderecoSchema } from "../../localidade/municipio-schema";
 
-const papeis = ["SUPERADMIN", "ADMIN", "GESTOR", "OPERADOR", "CONTABILISTA"];
+// Definição dos papéis
+export const papeis = [
+  { value: "SUPERADMIN", label: "Administrador" },
+  { value: "ADMIN", label: "Administrador de Filial" },
+  { value: "GESTOR", label: "Gestor de Filial" },
+  { value: "OPERADOR", label: "Operador de Caixa" },
+  { value: "CONTABILISTA", label: "Contabilista" },
+] as const;
 
-export const FuncionarioSchema = z.object({
-  id: z.uuid().optional(),
-  nome_complento: z.string().optional(),
-  user: z.email().optional(),
-  filial_nome: z.string().optional(),
-  first_name: z.string().min(2, "No mínimo 2 caracteres"),
-  last_name: z.string().min(2, "No mínimo 2 caracteres"),
-  email: z.email({ error: "Email inválido!" }),
-  password: z.string().min(8, "No mínimo caracteres"),
-  confirm_password: z.string().refine((value) => {
-    return value.length >= 8;
-  }),
-  filial: z.uuid(),
-  bi: z.string().regex(/^\d{9}[A-Z]{2}\d{3}$/, {
-    error:
-      "O formato do BI deve ser 000000000XX000 (9 números, 2 letras, 3 números)",
-  }),
-  cargo: z.string(),
-  telemovel: z.string(),
-  papel: z.enum(papeis, { error: "Papel inválido!" }),
-  ativo: z.boolean(),
-  endereco: EnderecoSchema,
-  created_at: z.date().or(z.string()).optional(),
-  updated_at: z.date().or(z.string()).optional(),
+export const papeisValues = papeis.map((p) => p.value) as string[];
+
+// Schema do endereço
+const EnderecoFormSchema = z.object({
+  bairro: z.string().min(1, "Bairro é obrigatório"),
+  rua: z.string().min(1, "Rua é obrigatória"),
+  ponto_referencia: z.string().optional(),
+  municipio: z.string().min(1, "Município é obrigatório"),
 });
 
-export const FuncionarioCreateSchema = z.object({
-  first_name: z.string(),
-  last_name: z.string(),
-  email: z.email(),
-  password: z.string().refine((value) => {
-    return value.length >= 8;
-  }),
-  confirm_password: z.string().refine((value) => {
-    return value.length >= 8;
-  }),
-  endereco_data: EnderecoSchema,
+// Schema base (sem refine)
+const FuncionarioBaseSchema = {
+  first_name: z
+    .string()
+    .min(2, "Primeiro nome deve ter no mínimo 2 caracteres"),
+  last_name: z.string().min(2, "Último nome deve ter no mínimo 2 caracteres"),
+  email: z.string().email("Email inválido"),
   bi: z
-    .string({
-      error: "O número do BI é obrigatório",
-    })
-    .max(14, "O número do BI deve ter no máximo 14 caracteres")
-    .min(14, "O número do BI deve ter no mínimo 14 caracteres")
-    .regex(
-      /^[A-Za-z]{2}[0-9]{12}$/,
-      "O número do BI deve ter exatamente 14 dígitos, e duas letras. Exemplo: 123456789BG123",
-    ),
-  cargo: z.string(),
+    .string()
+    .regex(/^\d{9}[A-Z]{2}\d{3}$/, "Formato inválido. Exemplo: 009876543BG001"),
+  cargo: z.string().min(2, "Cargo deve ter no mínimo 2 caracteres"),
   telemovel: z
     .string()
-    .max(9, "O telemovel deve ter no máximo 9 dígitos")
-    .min(9, "O telemovel deve ter no mínimo 9 dígitos")
-    .regex(/^[0-9]+$/, "O telemovel deve conter apenas números"),
-  papel: z.string().optional(),
+    .regex(/^9\d{8}$/, "Telefone deve começar com 9 e ter 9 dígitos"),
+  papel: z.string().min(1, "Papel é obrigatório"),
   ativo: z.boolean(),
-  filial: z.uuid(),
+  filial: z.string().min(1, "Filial é obrigatória"),
+  endereco: EnderecoFormSchema,
+  password: z.string().optional(),
+  confirm_password: z.string().optional(),
+};
+
+// Schema do formulário com refine
+export const FuncionarioFormSchema = z.object(FuncionarioBaseSchema).refine(
+  (data) => {
+    if (data.password || data.confirm_password) {
+      return data.password === data.confirm_password;
+    }
+    return true;
+  },
+  {
+    message: "As palavras-passe não coincidem",
+    path: ["confirm_password"],
+  },
+);
+
+// Schema para criação (sem refine e sem confirm_password)
+export const FuncionarioCreateSchema = z.object({
+  first_name: FuncionarioBaseSchema.first_name,
+  last_name: FuncionarioBaseSchema.last_name,
+  email: FuncionarioBaseSchema.email,
+  bi: FuncionarioBaseSchema.bi,
+  cargo: FuncionarioBaseSchema.cargo,
+  telemovel: FuncionarioBaseSchema.telemovel,
+  papel: FuncionarioBaseSchema.papel,
+  ativo: FuncionarioBaseSchema.ativo,
+  filial: FuncionarioBaseSchema.filial,
+  endereco: FuncionarioBaseSchema.endereco,
+  password: FuncionarioBaseSchema.password,
 });
 
-export type Funcionario = z.infer<typeof FuncionarioSchema>;
+// Schema para atualização (todos opcionais)
+export const FuncionarioUpdateSchema = FuncionarioCreateSchema.partial();
 
+// Schema para resposta da API
+export const FuncionarioResponseSchema = z.object({
+  id: z.string().uuid(),
+  nome_completo: z.string(),
+  email: z.string().email(),
+  bi: z.string(),
+  cargo: z.string(),
+  papel: z.string(),
+  ativo: z.boolean(),
+  telemovel: z.string(),
+  filial: z.string().uuid(),
+  filial_nome: z.string(),
+  created_at: z.string().datetime(),
+});
+
+// Schema para listagem
+export const FuncionarioListSchema = FuncionarioResponseSchema.pick({
+  id: true,
+  nome_completo: true,
+  email: true,
+  bi: true,
+  cargo: true,
+  papel: true,
+  ativo: true,
+  telemovel: true,
+  filial_nome: true,
+  created_at: true,
+});
+
+export type FuncionarioFormData = z.infer<typeof FuncionarioFormSchema>;
 export type FuncionarioCreate = z.infer<typeof FuncionarioCreateSchema>;
-
-/***
- * 
- * 
- * 
- *     ROLES = (
-        ('SUPERADMIN', 'Administrador'),
-        ('ADMIN', 'Administrador de Filial'),
-        ('GESTOR', 'Gestor de Filial'),
-        ('OPERADOR', 'Operador de Caixa'),
-        ('CONTABILISTA', 'Contabilista'),
-    )
-
- */
+export type FuncionarioUpdate = z.infer<typeof FuncionarioUpdateSchema>;
+export type FuncionarioResponse = z.infer<typeof FuncionarioResponseSchema>;
+export type FuncionarioList = z.infer<typeof FuncionarioListSchema>;
