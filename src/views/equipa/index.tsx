@@ -238,40 +238,38 @@ export function FuncionariosPage() {
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-border">
-          <DataTableV2
-            data={filteredFuncionarios || []}
-            columns={columns}
-            rowKey="id"
-            selectable={true}
-            globalSearch={false}
-            showCount={true}
-            density="normal"
-            emptyMessage="Nenhum funcionário encontrado."
-            actions={["edit", "delete"]}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            customActions={[
-              {
-                key: "toggle-status",
-                label: (row) => (row.ativo ? "Desativar" : "Ativar"),
-                icon: (row) =>
-                  row.ativo ? <PowerOff size={14} /> : <Power size={14} />,
-                variant: (row) => (row.ativo ? "warning" : "success"),
-                onClick: handleToggleStatus,
+        <DataTableV2
+          data={filteredFuncionarios || []}
+          columns={columns}
+          rowKey="id"
+          selectable={true}
+          globalSearch={false}
+          showCount={true}
+          density="normal"
+          emptyMessage="Nenhum funcionário encontrado."
+          actions={["edit", "delete"]}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          customActions={[
+            {
+              key: "toggle-status",
+              label: (row) => (row.ativo ? "Desativar" : "Ativar"),
+              icon: (row) =>
+                row.ativo ? <PowerOff size={14} /> : <Power size={14} />,
+              variant: (row) => (row.ativo ? "warning" : "success"),
+              onClick: handleToggleStatus,
+            },
+            {
+              key: "view-details",
+              label: "Ver Detalhes",
+              icon: <Eye size={14} />,
+              variant: "default",
+              onClick: (row) => {
+                window.location.href = `/equipa/${row.id}`;
               },
-              {
-                key: "view-details",
-                label: "Ver Detalhes",
-                icon: <Eye size={14} />,
-                variant: "default",
-                onClick: (row) => {
-                  window.location.href = `/equipa/${row.id}`;
-                },
-              },
-            ]}
-          />
-        </div>
+            },
+          ]}
+        />
       )}
 
       {/* Modals */}
