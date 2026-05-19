@@ -79,33 +79,14 @@ export function ClienteForm({
   const onSubmit = async (data: ClienteFormData) => {
     try {
       // Remove campos null/empty para envio
-      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
-        if (value !== null && value !== "") {
-          if (key === "endereco") {
-            const cleanEndereco = Object.entries(value).reduce(
-              (endAcc, [endKey, endValue]) => {
-                if (endValue !== null && endValue !== "") {
-                  endAcc[endKey as keyof typeof endAcc] = endValue;
-                }
-                return endAcc;
-              },
-              {} as any,
-            );
-            if (Object.keys(cleanEndereco).length > 0) {
-              acc[key as keyof ClienteFormData] = cleanEndereco as any;
-            }
-          }
-        }
-        return acc;
-      }, {} as Partial<ClienteFormData>);
 
       if (isEditMode) {
         await updateMutation.mutateAsync({
           id: defaultValues.id,
-          data: cleanData,
+          data: data,
         });
       } else {
-        await createMutation.mutateAsync(cleanData as ClienteFormData);
+        await createMutation.mutateAsync(data as ClienteFormData);
       }
       onSuccess();
       onOpenChange(false);
