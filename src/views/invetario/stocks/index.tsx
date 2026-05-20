@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorComponent } from "@/components/error-component";
 import { HeaderPage } from "@/components/header-page";
-import { useStock } from "@/src/hooks/empresa/afilia/use-stock";
+import { useStocks } from "@/src/hooks/empresa/afilia/use-stock";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
@@ -118,7 +118,7 @@ const columns: ColumnDef<Stock>[] = [
 
 export function StockPage() {
   const { openModal, setOpenModal } = useOpenModal<Stock>();
-  const { data, isLoading, isError } = useStock();
+  const { data, isLoading, isError } = useStocks();
 
   // Cálculos consolidados dinâmicos a partir dos resultados reais da API
   const items = data?.results || [];

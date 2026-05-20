@@ -1,13 +1,14 @@
+import { ProductFormData } from "@/src/schemas/product-schema";
 import { api } from "../api";
-import { Produto, PaginatedResponse } from "@/src/types";
+import { PaginatedResponse } from "@/src/types";
 
 export const faturacaoService = {
   getProdutos: async (page = 1, search = "") => {
-    const response = await api.get<PaginatedResponse<Produto>>(
+    const response = await api.get<PaginatedResponse<ProductFormData>>(
       "/faturacao/produtos/",
       {
         params: { page, search },
-      }
+      },
     );
     return response.data;
   },
