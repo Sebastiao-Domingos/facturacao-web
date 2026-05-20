@@ -1,5 +1,6 @@
 // src/schemas/empresa/afilias/funcionario-schema.ts
 import z from "zod";
+import { EnderecoSchema } from "../../localidade/municipio-schema";
 
 // Definição dos papéis
 export const papeis = [
@@ -12,13 +13,7 @@ export const papeis = [
 
 export const papeisValues = papeis.map((p) => p.value) as string[];
 
-// Schema do endereço
-const EnderecoFormSchema = z.object({
-  bairro: z.string().min(1, "Bairro é obrigatório"),
-  rua: z.string().min(1, "Rua é obrigatória"),
-  ponto_referencia: z.string().optional(),
-  municipio: z.string().min(1, "Município é obrigatório"),
-});
+//Schema do endereço
 
 // Schema base (sem refine)
 const FuncionarioBaseSchema = {
@@ -36,8 +31,9 @@ const FuncionarioBaseSchema = {
     .regex(/^9\d{8}$/, "Telefone deve começar com 9 e ter 9 dígitos"),
   papel: z.string().min(1, "Papel é obrigatório"),
   ativo: z.boolean(),
-  filial: z.string().min(1, "Filial é obrigatória"),
-  endereco: EnderecoFormSchema,
+  filial: z.uuid({ error: "A filial é obrigatória" }).optional(),
+
+  endereco: EnderecoSchema,
   password: z.string().optional(),
   confirm_password: z.string().optional(),
 };
@@ -84,7 +80,7 @@ export const FuncionarioResponseSchema = z.object({
   papel: z.string(),
   ativo: z.boolean(),
   telemovel: z.string(),
-  filial: z.string().uuid(),
+  filial: z.string().uuid().optional(),
   filial_nome: z.string(),
   created_at: z.string().datetime(),
 });

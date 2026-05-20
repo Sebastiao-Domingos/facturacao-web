@@ -43,6 +43,8 @@ import {
 import { useFuncionarioMutations } from "@/src/hooks/empresa/use-funcionario";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { AsyncFancySelect } from "@/components/select/sync-fancy-select";
+import { fi } from "date-fns/locale";
 
 interface FuncionarioFormProps {
   defaultValues?: any;
@@ -157,7 +159,7 @@ export function FuncionarioForm({
         telemovel: data.telemovel,
         papel: data.papel,
         ativo: data.ativo,
-        filial: data.filial,
+        filial: undefined,
         endereco: data.endereco,
       };
 
@@ -195,6 +197,10 @@ export function FuncionarioForm({
       setEtapaAtual(1);
     }
   }, [open, form]);
+
+  if (form.formState.errors) {
+    console.log(form.formState.errors);
+  }
 
   return (
     <FormModal
@@ -360,6 +366,28 @@ export function FuncionarioForm({
               <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
+                  name="endereco.municipio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Município *</FormLabel>
+                      <FormControl>
+                        <AsyncFancySelect
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          endpoint="/organizacao/municipios"
+                          valueField="id"
+                          displayField="nome"
+                          placeholder="Selecione o município"
+                          searchable
+                          searchField="nome"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="endereco.bairro"
                   render={({ field }) => (
                     <FormItem>
@@ -394,20 +422,6 @@ export function FuncionarioForm({
                       <FormLabel>Ponto de referência</FormLabel>
                       <FormControl>
                         <Input placeholder="Perto do Kero" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="endereco.municipio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Município *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Luanda" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

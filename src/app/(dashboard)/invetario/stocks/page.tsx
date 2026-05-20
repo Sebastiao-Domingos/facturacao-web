@@ -1,4 +1,4 @@
-import { StockPage } from "@/src/views/invetario/stocks/test";
+import { StockPage } from "@/src/views/invetario/stocks";
 
 export default StockPage;
 
