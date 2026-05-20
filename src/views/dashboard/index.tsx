@@ -1,99 +1,164 @@
 // src/app/(dashboard)/page.tsx
 "use client";
 
+import { useState } from "react";
+import {
+  DollarSign,
+  Package,
+  Users,
+  Building2,
+  TrendingUp,
+  AlertTriangle,
+  ShoppingCart,
+  UserPlus,
+  RefreshCw,
+  BarChart2Icon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useDashboard } from "@/src/hooks/empresa/use-dashboard";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorComponent } from "@/components/error-component";
+import { useRouter } from "next/navigation";
+import { KPICard } from "./components/KPICard";
+import { VendasChart } from "./components/endasChart";
+import { TopProdutos } from "./components/TopProdutos";
+import { AlertasStock } from "./components/AlertasStock";
+import { UltimasMovimentacoes } from "./components/UltimasMovimentacoes";
 import { HeaderPage } from "@/components/header-page";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Package, Users, Wallet, BarChart2 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Vendas de Hoje",
-    value: "145.250,00 Kz",
-    description: "+12% em relação a ontem",
-    icon: Wallet,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    title: "Produtos em Stock",
-    value: "1.240",
-    description: "24 itens com stock crítico",
-    icon: Package,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    title: "Novos Clientes",
-    value: "18",
-    description: "Este mês",
-    icon: Users,
-    color: "text-violet-500",
-    bg: "bg-violet-500/10",
-  },
-  {
-    title: "Meta Mensal",
-    value: "68%",
-    description: "Objetivo: 2.500.000 Kz",
-    icon: TrendingUp,
-    color: "text-amber-500",
-    bg: "bg-amber-500/10",
-  },
-];
+export function DashboardPage() {
+  const router = useRouter();
+  const { data, isLoading, isError, refetch } = useDashboard();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-export function DashboardHome() {
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-4 sm:p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="mt-2 h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-lg" />
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="col-span-2 h-[400px] rounded-lg" />
+          <Skeleton className="h-[400px] rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="p-4 sm:p-6">
+        <ErrorComponent
+          message="Erro ao carregar dashboard"
+          description="Não foi possível carregar os dados do dashboard. Tente novamente mais tarde."
+        />
+      </div>
+    );
+  }
+
+  const {
+    kpis,
+    vendas_ultimos_12_meses,
+    top_produtos,
+    alertas_stock,
+    ultimas_movimentacoes,
+  } = data;
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 p-2">
+      {/* Header */}
       <HeaderPage
-        title="Painel de Controlo"
-        description="Bem-vendo no Painel de Controlo, veja o resumo das suas operações"
-        Icon={<BarChart2 size={20} className="text-muted-foreground" />}
-      />
+        title="Dashboard"
+        description="Visão geral do negócio e métricas em tempo real"
+        Icon={<BarChart2Icon></BarChart2Icon>}
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="gap-1"
+        >
+          <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+          Actualizar
+        </Button>
+      </HeaderPage>
 
+      {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <Card
-            key={i}
-            className="border-border/50 bg-background/50 backdrop-blur-sm overflow-hidden group"
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground opacity-80">
-                {stat.title}
-              </CardTitle>
-              <div
-                className={`p-2 rounded-xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110`}
-              >
-                <stat.icon size={18} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black tracking-tighter">
-                {stat.value}
-              </div>
-              <p className="text-xs font-medium text-muted-foreground mt-1">
-                {stat.description}
-              </p>
-              {/* Mini gráfico visual sutil */}
-              <div className="mt-4 h-1 w-full bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${stat.bg.replace(
-                    "/10",
-                    "",
-                  )} w-[60%] opacity-50`}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <KPICard
+          titulo="Faturação do Mês"
+          valor={kpis.faturacao_mes}
+          formato="moeda"
+          variacao={kpis.variacao_mensal}
+          icon={<DollarSign size={18} />}
+        />
+        <KPICard
+          titulo="Faturação Anual"
+          valor={kpis.faturacao_ano}
+          formato="moeda"
+          icon={<TrendingUp size={18} />}
+        />
+        <KPICard
+          titulo="Clientes"
+          valor={kpis.total_clientes}
+          icon={<Users size={18} />}
+        />
+        <KPICard
+          titulo="Produtos"
+          valor={kpis.total_produtos}
+          icon={<Package size={18} />}
+        />
+        <KPICard
+          titulo="Funcionários"
+          valor={kpis.total_funcionarios}
+          icon={<UserPlus size={18} />}
+        />
+        <KPICard
+          titulo="Filiais"
+          valor={kpis.total_filiais}
+          icon={<Building2 size={18} />}
+        />
+        <KPICard
+          titulo="Stock Baixo"
+          valor={kpis.produtos_stock_baixo}
+          icon={<AlertTriangle size={18} />}
+        />
+        <KPICard
+          titulo="Produtos Esgotados"
+          valor={kpis.produtos_esgotados}
+          icon={<ShoppingCart size={18} />}
+        />
       </div>
 
-      {/* Placeholder para Gráficos Maiores */}
-      <div className="grid gap-4 md:grid-cols-7">
-        <Card className="md:col-span-4 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
-          [Gráfico de Vendas Semanais]
-        </Card>
-        <Card className="md:col-span-3 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
-          [Produtos Mais Vendidos]
-        </Card>
+      {/* Gráficos e Listas */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <VendasChart data={vendas_ultimos_12_meses} />
+        <TopProdutos data={top_produtos} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AlertasStock
+          data={alertas_stock}
+          onVerStock={() => router.push("/stock")}
+        />
+        <UltimasMovimentacoes data={ultimas_movimentacoes} />
       </div>
     </div>
   );

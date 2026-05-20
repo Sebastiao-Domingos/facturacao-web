@@ -19,7 +19,7 @@ export class MunicipioService {
   async update(data: Municipio): Promise<Municipio> {
     const response = await api.put<Municipio>(
       `${this.endpoint}${data.id}/`,
-      data
+      data,
     );
     return response.data;
   }

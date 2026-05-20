@@ -1,6 +1,6 @@
-import { DashboardHome } from "@/src/views/dashboard";
+import { DashboardPage } from "@/src/views/dashboard";
 
-export default DashboardHome;
+export default DashboardPage;
 
 export const metadata = {
   title: "Dashboard do SERGAO",
