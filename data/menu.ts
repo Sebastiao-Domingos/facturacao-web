@@ -16,6 +16,7 @@ import {
   SquareSquare,
   UsersRound,
   UserSquare2Icon,
+  BookCheck,
 } from "lucide-react";
 
 interface NavItem {
@@ -40,6 +41,18 @@ export const data: { navMain: NavItem[] } = {
         { title: "Produtos", url: "/produtos", icon: Layers },
         { title: "Categorias", url: "/categorias", icon: SquareSquare },
         { title: "Stocks", url: "/stocks", icon: TrendingUp },
+      ],
+    },
+    {
+      title: "Faturação",
+      url: "/faturacao",
+      icon: Receipt,
+      items: [
+        {
+          title: "Documentos",
+          url: "/documentos",
+          icon: BookCheck,
+        },
       ],
     },
     {

@@ -13,6 +13,7 @@ export const StockProdutoSchema = z.object({
   id: z.string().uuid(),
   nome: z.string().min(1, "Nome do produto é obrigatório"),
   codigo: z.string(),
+  codigo_barras: z.string(),
   preco_venda: z.number().nonnegative(),
 });
 
