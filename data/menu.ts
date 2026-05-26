@@ -53,7 +53,6 @@ export const data: { navMain: NavItem[] } = {
           url: "/documentos",
           icon: BookCheck,
         },
-
         {
           title: "Pagamentos",
           url: "/pagamentos",
@@ -79,6 +78,24 @@ export const data: { navMain: NavItem[] } = {
         },
       ],
     },
+    // NOVA SEÇÃO: COMPRAS
+    {
+      title: "Compras",
+      url: "/compras",
+      icon: ShoppingCart,
+      items: [
+        {
+          title: "Fornecedores",
+          url: "/fornecedores",
+          icon: UserSquare2Icon,
+        },
+        {
+          title: "Pedidos de Compra",
+          url: "/compras",
+          icon: Receipt,
+        },
+      ],
+    },
     {
       title: "Equipa",
       url: "/equipa",
@@ -94,11 +111,7 @@ export const data: { navMain: NavItem[] } = {
           url: "/clientes",
           icon: UsersRound,
         },
-        {
-          title: "Fornecedores",
-          url: "/fornecedores",
-          icon: UserSquare2Icon,
-        },
+        // Fornecedores removido daqui (já está na seção Compras)
       ],
     },
     {
@@ -123,7 +136,6 @@ export const data: { navMain: NavItem[] } = {
         },
       ],
     },
-
     {
       title: "Configurações",
       url: "/configuracoes",
@@ -144,7 +156,6 @@ export const data: { navMain: NavItem[] } = {
           url: "/utilizadores",
           icon: Users,
         },
-
         {
           title: "Preferências",
           url: "/preferencias",
