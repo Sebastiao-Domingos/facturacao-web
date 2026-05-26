@@ -13,6 +13,7 @@ import {
   PagamentoResponseSchema,
 } from "../../schemas/empresa/faturacao/pagamento-schema";
 import { z } from "zod";
+import { PaginatedResponse } from "@/src/types";
 
 const DOCUMENTO_URL = "/faturacao/documentos";
 const PAGAMENTO_URL = "/faturacao/pagamentos";
@@ -27,14 +28,12 @@ export class DocumentoService {
     data_fim?: string;
     page?: number;
     page_size?: number;
-  }): Promise<{ results: DocumentoList[]; count: number }> {
-    const response = await api.get(`${DOCUMENTO_URL}/`, { params });
-    return {
-      results: z
-        .array(DocumentoListSchema)
-        .parse(response.data.results || response.data),
-      count: response.data.count || response.data.length,
-    };
+  }): Promise<PaginatedResponse<DocumentoList>> {
+    const response = await api.get<PaginatedResponse<DocumentoList>>(
+      `${DOCUMENTO_URL}/`,
+      { params },
+    );
+    return response.data;
   }
 
   // GET /api/v1/faturacao/documentos/{id}/ - Detalhe do documento
@@ -45,6 +44,7 @@ export class DocumentoService {
 
   // POST /api/v1/faturacao/documentos/ - Criar documento
   async create(data: DocumentoCreate): Promise<DocumentoResponse> {
+    console.log("service : ", data);
     const response = await api.post(`${DOCUMENTO_URL}/`, data);
     return DocumentoResponseSchema.parse(response.data);
   }

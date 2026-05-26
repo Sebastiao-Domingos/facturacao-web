@@ -34,9 +34,11 @@ import {
 } from "@/src/schemas/empresa/faturacao/documento-schema";
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
 import { ModalPagamento } from "../components/ModalPagamento";
+import { env } from "process";
+import { handleImprimir } from "@/src/helpers/print";
 
 export function DocumentoDetailPage() {
-  const { id } = useParams();
+  const { documento: id } = useParams();
   const router = useRouter();
   const [pagamentoModalOpen, setPagamentoModalOpen] = useState(false);
 
@@ -84,10 +86,6 @@ export function DocumentoDetailPage() {
     downloadPdfMutation.mutate(id as string);
   };
 
-  const handleImprimir = () => {
-    window.open(`/api/v1/faturacao/documentos/${id}/pdf/`, "_blank");
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
@@ -118,7 +116,7 @@ export function DocumentoDetailPage() {
   const estaPaga = documento.estado === "PAGA";
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6 px-4 sm:px-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -143,7 +141,13 @@ export function DocumentoDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm" onClick={handleImprimir}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              handleImprimir({ pdfUrl: `/faturacao/documentos/${id}/pdf/` })
+            }
+          >
             <Printer size={16} className="mr-2" />
             Imprimir
           </Button>

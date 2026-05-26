@@ -21,9 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import { useDocumentoMutations } from "@/src/hooks/empresa/use-documento";
-import { useClientes } from "@/src/hooks/empresa/use-clientes";
 import { useStocks } from "@/src/hooks/empresa/afilia/use-stock";
-import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import {
   DocumentoCreate,
   DocumentoCreateSchema,
@@ -31,17 +29,16 @@ import {
 } from "@/src/schemas/empresa/faturacao/documento-schema";
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
 import { AsyncFancySelect } from "@/components/select/sync-fancy-select";
+import { Loader } from "@/components/loader";
 
-// Tipo para linha do formulário
 interface LinhaFormData {
-  produto_id: string;
+  produto: string;
   quantidade: number;
   preco_unitario: number;
   desconto_pct?: number;
   taxa_iva?: number;
 }
 
-// Tipo para o formulário - alinhado com o schema
 interface DocumentoFormData {
   tipo: TipoDocumento;
   cliente_id: string;
@@ -54,16 +51,16 @@ interface DocumentoFormData {
 export function NovoDocumentoPage() {
   const router = useRouter();
   const { createMutation } = useDocumentoMutations();
-  const { data: clientesData } = useClientes();
-  const { data: stocksData } = useStocks();
-  const { data: filiaisData } = useAfilia();
+  const { data: stocksData, isLoading: isLoadingStocks } = useStocks({
+    page_size: 1000,
+    page: 1,
+    produto__ativo: true,
+  });
 
   const [subtotal, setSubtotal] = useState(0);
   const [totalIva, setTotalIva] = useState(0);
   const [total, setTotal] = useState(0);
 
-  const clientes = clientesData?.results || [];
-  const filiais = filiaisData || [];
   const produtos = stocksData?.results || [];
 
   const form = useForm<DocumentoFormData>({
@@ -74,7 +71,7 @@ export function NovoDocumentoPage() {
       filial_id: "",
       linhas: [
         {
-          produto_id: "",
+          produto: "",
           quantidade: 1,
           preco_unitario: 0,
           desconto_pct: 0,
@@ -93,7 +90,6 @@ export function NovoDocumentoPage() {
 
   const watchLinhas = form.watch("linhas");
 
-  // Recalcular totais quando as linhas mudarem
   useEffect(() => {
     let newSubtotal = 0;
     let newTotalIva = 0;
@@ -116,23 +112,32 @@ export function NovoDocumentoPage() {
 
   const onSubmit = async (data: DocumentoFormData) => {
     try {
-      // Transforma os dados para o formato esperado pela API
       const submitData: DocumentoCreate = {
         cliente_id: data.cliente_id,
         filial_id: data.filial_id,
         tipo: data.tipo,
         data_vencimento: data.data_vencimento,
         observacao: data.observacao,
-        linhas: data.linhas.map((linha) => ({
-          produto_id: linha.produto_id,
-          quantidade: Number(linha.quantidade),
-          preco_unitario: Number(linha.preco_unitario),
-          desconto_pct: Number(linha.desconto_pct || 0),
-          taxa_iva: Number(linha.taxa_iva || 14),
-        })),
+        linhas: data.linhas
+          .filter((linha) => linha.produto)
+          .map((linha) => ({
+            produto: linha.produto,
+            quantidade: Number(linha.quantidade),
+            preco_unitario: Number(linha.preco_unitario),
+            desconto_pct: Number(linha.desconto_pct || 0),
+            taxa_iva: Number(linha.taxa_iva || 14),
+          })),
       };
+
+      if (submitData.linhas.length === 0) {
+        console.error("Adicione pelo menos um produto");
+        return;
+      }
+
+      console.log("Dados : ", submitData);
+
       await createMutation.mutateAsync(submitData);
-      router.push("/facturacao");
+      router.push("/facturacao/documentos");
     } catch (error) {
       console.error(error);
     }
@@ -140,7 +145,7 @@ export function NovoDocumentoPage() {
 
   const handleAddLinha = useCallback(() => {
     append({
-      produto_id: "",
+      produto: "",
       quantidade: 1,
       preco_unitario: 0,
       desconto_pct: 0,
@@ -157,9 +162,17 @@ export function NovoDocumentoPage() {
     [fields.length, remove],
   );
 
+  if (isLoadingStocks) {
+    return <Loader />;
+  }
+
+  // Criar um Set para garantir IDs únicos (se houver duplicatas no backend)
+  const uniqueProdutos = Array.from(
+    new Map(produtos.map((item) => [item?.produto, item])).values(),
+  );
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft size={16} />
@@ -173,7 +186,6 @@ export function NovoDocumentoPage() {
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Informações do Documento */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Informações do Documento</CardTitle>
@@ -269,7 +281,6 @@ export function NovoDocumentoPage() {
           </CardContent>
         </Card>
 
-        {/* Linhas do Documento */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Itens do Documento</CardTitle>
@@ -320,52 +331,58 @@ export function NovoDocumentoPage() {
                     return (
                       <tr key={field.id} className="border-b border-border/50">
                         <td className="px-2 py-2">
-                          <Controller
-                            control={form.control}
-                            name={`linhas.${index}.produto_id`}
-                            render={({ field: selectField }) => (
-                              <Select
-                                value={selectField.value}
-                                onValueChange={(value) => {
-                                  const produto = produtos.find(
-                                    (p) => p.produto.id === value,
-                                  );
-                                  selectField.onChange(value);
-                                  if (produto) {
-                                    form.setValue(
-                                      `linhas.${index}.preco_unitario`,
-                                      produto.produto.preco_venda,
-                                    );
-                                    form.setValue(
-                                      `linhas.${index}.taxa_iva`,
-                                      14,
-                                    );
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {produtos.map((item) => (
+                          <Select
+                            value={form.watch(`linhas.${index}.produto`) || ""}
+                            onValueChange={(value) => {
+                              const produto = uniqueProdutos.find(
+                                (p) => p?.produto === value,
+                              );
+                              form.setValue(`linhas.${index}.produto`, value);
+                              if (produto) {
+                                form.setValue(
+                                  `linhas.${index}.preco_unitario`,
+                                  Number(
+                                    produto.produto_detalhes?.preco_venda,
+                                  ) || 0,
+                                );
+                                form.setValue(`linhas.${index}.taxa_iva`, 14);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {uniqueProdutos && uniqueProdutos.length > 0 ? (
+                                uniqueProdutos.map((item) => {
+                                  const produtoId = item?.produto;
+                                  const produtoNome =
+                                    item?.produto_nome || "Produto";
+
+                                  if (!produtoId) return null;
+
+                                  return (
                                     <SelectItem
-                                      key={item.id}
-                                      value={item.produto.id}
+                                      key={`prod-${produtoId}`}
+                                      value={produtoId}
                                     >
-                                      {item.produto.nome} -{" "}
-                                      {item.produto.codigo_barras}
+                                      {produtoNome}
                                     </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          />
+                                  );
+                                })
+                              ) : (
+                                <div className="p-2 text-center text-sm text-muted-foreground">
+                                  Nenhum produto encontrado
+                                </div>
+                              )}
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="px-2 py-2">
                           <Input
                             type="number"
-                            step="0.001"
-                            min="0.001"
+                            step="1"
+                            min="1"
                             value={quantidade}
                             onChange={(e) =>
                               form.setValue(
@@ -430,7 +447,6 @@ export function NovoDocumentoPage() {
           </CardContent>
         </Card>
 
-        {/* Resumo */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Resumo</CardTitle>
@@ -454,7 +470,6 @@ export function NovoDocumentoPage() {
           </CardContent>
         </Card>
 
-        {/* Botões */}
         <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancelar

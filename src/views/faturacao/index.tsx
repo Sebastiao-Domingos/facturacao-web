@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Download, SquarePlus } from "lucide-react";
+import { Search, Download, SquarePlus, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -31,8 +31,10 @@ import {
   getEstadoLabel,
 } from "@/src/schemas/empresa/faturacao/documento-schema";
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
+import { handleImprimir } from "@/src/helpers/print";
 
 export function DocumentosPage() {
+  // const pdfUrl = `/faturacao/documentos/${id}/pdf/`;
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
@@ -55,7 +57,7 @@ export function DocumentosPage() {
   });
 
   const handleView = (doc: DocumentoList) => {
-    router.push(`/facturacao/${doc.id}`);
+    router.push(`/faturacao/documentos/${doc.id}`);
   };
 
   const handleDownloadPdf = (doc: DocumentoList) => {
@@ -79,7 +81,7 @@ export function DocumentosPage() {
       width: 120,
     },
     {
-      accessorKey: "cliente.nome",
+      accessorKey: "cliente_nome",
       header: "Cliente",
       sortable: true,
       filterable: true,
@@ -106,6 +108,14 @@ export function DocumentosPage() {
     {
       accessorKey: "data_emissao",
       header: "Data",
+      sortable: true,
+      width: 120,
+      cell: (value) =>
+        format(new Date(String(value)), "dd/MM/yyyy", { locale: pt }),
+    },
+    {
+      accessorKey: "data_vencimento",
+      header: "Vencimento",
       sortable: true,
       width: 120,
       cell: (value) =>
@@ -202,6 +212,16 @@ export function DocumentosPage() {
               icon: <Download size={14} />,
               variant: "default",
               onClick: handleDownloadPdf,
+            },
+            {
+              key: "imprimir",
+              label: "Imprimir",
+              icon: <Printer size={14} />,
+              variant: "default",
+              onClick: (row) =>
+                handleImprimir({
+                  pdfUrl: `/faturacao/documentos/${row.id}/pdf/`,
+                }),
             },
           ]}
         />

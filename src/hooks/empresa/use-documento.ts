@@ -17,6 +17,7 @@ import {
   PagamentoCreate,
   PagamentoResponse,
 } from "@/src/schemas/empresa/faturacao/pagamento-schema";
+import { PaginatedResponse } from "@/src/types";
 
 export const documentoKeys = {
   all: ["documentos"] as const,
@@ -36,7 +37,7 @@ export const useDocumentos = (filters?: {
   data_fim?: string;
   page?: number;
   page_size?: number;
-}): UseQueryResult<{ results: DocumentoList[]; count: number }> => {
+}): UseQueryResult<PaginatedResponse<DocumentoList>> => {
   return useQuery({
     queryKey: documentoKeys.list(filters),
     queryFn: () => documentoService.listar(filters),

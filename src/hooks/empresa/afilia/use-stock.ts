@@ -25,7 +25,7 @@ export const stockKeys = {
 export const useStocks = (filters?: StockFilters) => {
   return useQuery({
     queryKey: stockKeys.list(filters),
-    queryFn: () => stockService.get(),
+    queryFn: () => stockService.get(filters),
   });
 };
 

@@ -44,7 +44,31 @@ type VisualizacaoType = "tabela" | "cards";
 
 const columns: ColumnDef<Stock>[] = [
   {
-    accessorKey: "codigo_barras",
+    accessorKey: "produto_nome",
+    header: "Produto",
+    sortable: true,
+    filterable: true,
+    cell: (value, row) => {
+      return (
+        <div className="flex items-center gap-3">
+          {row.produto_detalhes?.thumbnail ? (
+            <img
+              src={row.produto_detalhes?.thumbnail}
+              alt={String(value)}
+              className="h-8 w-8 rounded-md object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-md bg-white/5 flex items-center justify-center dark:text-white/20 text-xs">
+              ?
+            </div>
+          )}
+          <span className="font-medium text-white/90">{String(value)}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "produto_detalhes.codigo_barras",
     header: "Cód. Barras",
     sortable: true,
     filterable: true,
@@ -52,15 +76,6 @@ const columns: ColumnDef<Stock>[] = [
       <span className="font-mono text-xs text-muted-foreground">
         {String(value)}
       </span>
-    ),
-  },
-  {
-    accessorKey: "produto_nome",
-    header: "Artigo",
-    sortable: true,
-    filterable: true,
-    cell: (value) => (
-      <span className="font-semibold text-foreground">{String(value)}</span>
     ),
   },
   {
@@ -154,9 +169,10 @@ export function StockPage() {
     const searchLower = searchTerm.toLowerCase();
 
     return stocks.filter((stock) => {
-      const produtoNome = stock.produto?.nome?.toLowerCase() || "";
-      const produtoCodigo = stock.produto?.codigo?.toLowerCase() || "";
-      const filialNome = stock.filial?.nome?.toLowerCase() || "";
+      const produtoNome = stock.produto_detalhes?.nome?.toLowerCase() || "";
+      const produtoCodigo =
+        stock.produto_detalhes?.codigo_barras?.toLowerCase() || "";
+      const filialNome = stock.filial_nome?.toLowerCase() || "";
 
       return (
         produtoNome.includes(searchLower) ||
@@ -184,7 +200,7 @@ export function StockPage() {
       {filteredStocks.map((stock) => {
         if (!stock.produto || !stock.filial) return null;
 
-        const status = getStatusInfo(stock.status_stock);
+        const status = getStatusInfo(stock.status);
         const isEstoqueBaixo =
           Number(stock.quantidade) <= Number(stock.stock_minimo) &&
           Number(stock.quantidade) > 0;
@@ -203,10 +219,10 @@ export function StockPage() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">
-                      {stock.produto.nome}
+                      {stock.produto_nome}
                     </CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      {stock.produto.codigo}
+                      {stock.produto_detalhes?.codigo_barras}
                     </p>
                   </div>
                 </div>
@@ -220,7 +236,7 @@ export function StockPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Filial</p>
-                  <p className="font-medium">{stock.filial.nome}</p>
+                  <p className="font-medium">{stock.filial_nome}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Quantidade</p>
@@ -476,8 +492,8 @@ export function StockPage() {
       {selectedStock && selectedStock.produto && selectedStock.filial && (
         <ModalMovimentarStock
           stockId={selectedStock.id}
-          produtoNome={selectedStock.produto.nome}
-          filialNome={selectedStock.filial.nome}
+          produtoNome={selectedStock.produto_nome}
+          filialNome={selectedStock.filial_nome}
           quantidadeAtual={Number(selectedStock.quantidade)}
           isOpen={modalOpen}
           onClose={() => {
@@ -499,7 +515,7 @@ export function StockPage() {
               Histórico de Movimentações
               {selectedStock && selectedStock.produto && (
                 <p className="text-sm font-normal text-muted-foreground mt-1">
-                  {selectedStock.produto.nome} — {selectedStock.filial?.nome}
+                  {selectedStock.produto_nome} — {selectedStock.filial_nome}
                 </p>
               )}
             </DialogTitle>

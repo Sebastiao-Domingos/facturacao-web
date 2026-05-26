@@ -1,5 +1,6 @@
 // src/schemas/empresa/afilias/stock-schema.ts
 import { z } from "zod";
+import { productSchema } from "../../product-schema";
 
 // ============ ENUMS ============
 export const TipoMovimentacaoEnum = z.enum(["E", "S"]);
@@ -30,11 +31,14 @@ export type StockFilial = z.infer<typeof StockFilialSchema>;
 // ============ STOCK ============
 export const StockSchema = z.object({
   id: z.string().uuid(),
-  produto: StockProdutoSchema,
-  filial: StockFilialSchema,
+  produto: z.uuid().optional(),
+  produto_detalhes: productSchema.optional(),
+  produto_nome: z.string(),
+  filial: z.uuid().optional(),
+  filial_nome: z.string(),
+  status: StatusStockEnum,
   quantidade: z.string().regex(/^\d+(\.\d{1,3})?$/),
   stock_minimo: z.string().regex(/^\d+(\.\d{1,3})?$/),
-  status_stock: StatusStockEnum,
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
 });
@@ -94,14 +98,28 @@ export type MovimentacaoListResponse = z.infer<
   typeof MovimentacaoListResponseSchema
 >;
 
-// ============ FILTROS ============
+// Schema de filtros expandido
 export const StockFiltersSchema = z.object({
+  // Filtros existentes
   filial: z.string().uuid().optional(),
   produto: z.string().uuid().optional(),
   status: StatusStockEnum.optional(),
   search: z.string().optional(),
   page: z.number().int().positive().default(1),
   page_size: z.number().int().positive().max(100).default(20),
+
+  // 🆕 Filtros por atributos do produto (lookups Django)
+  produto__nome: z.string().optional(), // busca textual (icontains)
+  produto__codigo_barras: z.string().optional(), // busca textual
+  produto__categoria: z.string().uuid().optional(), // igualdade exata
+  produto__tipo: z.enum(["P", "S"]).optional(), // tipo do produto
+  produto__ativo: z.boolean().optional(), // ativo/inativo
+
+  // 🆕 Filtros por quantidade e stock mínimo (range)
+  quantidade__gte: z.number().nonnegative().optional(),
+  quantidade__lte: z.number().nonnegative().optional(),
+  stock_minimo__gte: z.number().nonnegative().optional(),
+  stock_minimo__lte: z.number().nonnegative().optional(),
 });
 
 export type StockFilters = z.infer<typeof StockFiltersSchema>;

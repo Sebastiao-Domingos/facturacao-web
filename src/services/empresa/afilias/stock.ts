@@ -5,6 +5,7 @@ import {
   MovimentacaoResponse,
   MovimentacaoResponseSchema,
   Stock,
+  StockFilters,
 } from "@/src/schemas/empresa/afilias/stock-schema";
 import { api } from "../../api";
 import { PaginatedResponse } from "@/src/types";
@@ -12,8 +13,11 @@ import { PaginatedResponse } from "@/src/types";
 export class StockService {
   readonly endpoint = "/faturacao/stocks/";
 
-  async get(): Promise<PaginatedResponse<Stock>> {
-    const response = await api.get<PaginatedResponse<Stock>>(this.endpoint);
+  async get(params?: StockFilters): Promise<PaginatedResponse<Stock>> {
+    console.log("service : ", params);
+    const response = await api.get<PaginatedResponse<Stock>>(this.endpoint, {
+      params,
+    });
     return response.data;
   }
 
