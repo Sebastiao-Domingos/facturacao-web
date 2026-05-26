@@ -79,3 +79,44 @@ export const useDashboardResumoFiliais = () => {
     queryFn: () => dashboardService.getResumoFiliais(),
   });
 };
+
+// Novos hooks para relatórios
+export const useVendasPorPeriodo = (params: {
+  data_inicio: string;
+  data_fim: string;
+  filial?: string;
+  agrupamento?: "dia" | "semana" | "mes";
+}) => {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, "vendas-periodo", params],
+    queryFn: () => dashboardService.getVendasPorPeriodo(params),
+    enabled: !!params.data_inicio && !!params.data_fim,
+  });
+};
+
+export const useRelatorioProdutos = (params: {
+  data_inicio: string;
+  data_fim: string;
+  filial?: string;
+  categoria?: string;
+  limit?: number;
+}) => {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, "relatorio-produtos", params],
+    queryFn: () => dashboardService.getRelatorioProdutos(params),
+    enabled: !!params.data_inicio && !!params.data_fim,
+  });
+};
+
+export const useRelatorioClientes = (params: {
+  data_inicio: string;
+  data_fim: string;
+  filial?: string;
+  limit?: number;
+}) => {
+  return useQuery({
+    queryKey: [...dashboardKeys.all, "relatorio-clientes", params],
+    queryFn: () => dashboardService.getRelatorioClientes(params),
+    enabled: !!params.data_inicio && !!params.data_fim,
+  });
+};

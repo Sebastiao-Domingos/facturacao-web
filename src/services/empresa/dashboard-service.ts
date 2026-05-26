@@ -16,9 +16,19 @@ import {
   AlertaStockSchema,
   MovimentacaoRecenteSchema,
   ResumoFilialSchema,
+  VendaPeriodoFlexivel,
+  VendaPeriodoFlexivelSchema,
+  RelatorioProduto,
+  RelatorioProdutoSchema,
+  RelatorioClienteSchema,
+  RelatorioCliente,
 } from "../../schemas/dashboard/dashboard-schema";
 
 import { z } from "zod";
+import {
+  Categoria,
+  CategoriaDetalhesSchema,
+} from "@/src/schemas/product-schema";
 
 const DASHBOARD_URL = "/dashboard";
 
@@ -77,6 +87,48 @@ export class DashboardService {
   async getResumoFiliais(): Promise<ResumoFilial[]> {
     const response = await api.get(`${DASHBOARD_URL}/resumo-filiais/`);
     return z.array(ResumoFilialSchema).parse(response.data);
+  }
+
+  async getVendasPorPeriodo(params: {
+    data_inicio: string;
+    data_fim: string;
+    filial?: string;
+    agrupamento?: "dia" | "semana" | "mes";
+  }): Promise<VendaPeriodoFlexivel[]> {
+    const response = await api.get(`${DASHBOARD_URL}/vendas-periodo/`, {
+      params,
+    });
+    return z.array(VendaPeriodoFlexivelSchema).parse(response.data);
+  }
+
+  async getRelatorioProdutos(params: {
+    data_inicio: string;
+    data_fim: string;
+    filial?: string;
+    categoria?: string;
+    limit?: number;
+  }): Promise<RelatorioProduto[]> {
+    const response = await api.get(`${DASHBOARD_URL}/relatorio-produtos/`, {
+      params,
+    });
+    return z.array(RelatorioProdutoSchema).parse(response.data);
+  }
+
+  async getRelatorioClientes(params: {
+    data_inicio: string;
+    data_fim: string;
+    filial?: string;
+    limit?: number;
+  }): Promise<RelatorioCliente[]> {
+    const response = await api.get(`${DASHBOARD_URL}/relatorio-clientes/`, {
+      params,
+    });
+    return z.array(RelatorioClienteSchema).parse(response.data);
+  }
+
+  async getCategorias(): Promise<Categoria[]> {
+    const response = await api.get("/faturacao/categorias/");
+    return z.array(CategoriaDetalhesSchema).parse(response.data);
   }
 }
 
