@@ -53,6 +53,12 @@ export const data: { navMain: NavItem[] } = {
           url: "/documentos",
           icon: BookCheck,
         },
+
+        {
+          title: "Pagamentos",
+          url: "/pagamentos",
+          icon: Scale,
+        },
       ],
     },
     {

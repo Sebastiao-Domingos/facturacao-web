@@ -133,7 +133,7 @@ export function DocumentosPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6 px-4 sm:px-6">
       <HeaderPage
         title="Documentos Fiscais"
         description="Gerencie facturas, pro-formas, recibos e outros documentos fiscais."

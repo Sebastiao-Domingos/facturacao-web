@@ -127,6 +127,8 @@ export const useDocumentoMutations = () => {
         error.response?.data?.message ||
         error.response?.data?.error ||
         "Erro ao registar pagamento";
+
+      console.log(error);
       toast.error(message);
     },
   });

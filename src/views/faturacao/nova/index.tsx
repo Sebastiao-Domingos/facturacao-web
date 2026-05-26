@@ -137,7 +137,7 @@ export function NovoDocumentoPage() {
       console.log("Dados : ", submitData);
 
       await createMutation.mutateAsync(submitData);
-      router.push("/facturacao/documentos");
+      router.push("/faturacao/documentos");
     } catch (error) {
       console.error(error);
     }

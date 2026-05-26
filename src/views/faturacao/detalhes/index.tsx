@@ -26,7 +26,6 @@ import {
   useDocumento,
   useDocumentoMutations,
 } from "@/src/hooks/empresa/use-documento";
-
 import { ErrorComponent } from "@/components/error-component";
 import {
   getEstadoColor,
@@ -34,13 +33,22 @@ import {
 } from "@/src/schemas/empresa/faturacao/documento-schema";
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
 import { ModalPagamento } from "../components/ModalPagamento";
-import { env } from "process";
-import { handleImprimir } from "@/src/helpers/print";
+import { ConfirmModal } from "@/src/components/shared/confirm-delete-modal";
+
+// Helper para impressão (substitui o import se não existir)
+const handleImprimir = ({ pdfUrl }: { pdfUrl: string }) => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888/api/v1";
+  const fullUrl = `${baseUrl}${pdfUrl}`;
+  window.open(fullUrl, "_blank");
+};
 
 export function DocumentoDetailPage() {
   const { documento: id } = useParams();
   const router = useRouter();
   const [pagamentoModalOpen, setPagamentoModalOpen] = useState(false);
+  const [emitirModalOpen, setEmitirModalOpen] = useState(false);
+  const [anularModalOpen, setAnularModalOpen] = useState(false);
 
   const { data: documento, isLoading, isError } = useDocumento(id as string);
   const {
@@ -51,19 +59,13 @@ export function DocumentoDetailPage() {
   } = useDocumentoMutations();
 
   const handleEmitir = () => {
-    if (confirm("Tem certeza que deseja emitir este documento?")) {
-      emitirMutation.mutate(id as string);
-    }
+    emitirMutation.mutate(id as string);
+    setEmitirModalOpen(false);
   };
 
   const handleAnular = () => {
-    if (
-      confirm(
-        "Tem certeza que deseja anular este documento? Esta ação não pode ser desfeita.",
-      )
-    ) {
-      anularMutation.mutate(id as string);
-    }
+    anularMutation.mutate(id as string);
+    setAnularModalOpen(false);
   };
 
   const handleRegistrarPagamento = (data: {
@@ -74,7 +76,6 @@ export function DocumentoDetailPage() {
     pagamentoMutation.mutate({
       id: id as string,
       data: {
-        documento_id: id as string,
         valor: data.valor,
         metodo: data.metodo as any,
         referencia: data.referencia,
@@ -114,6 +115,10 @@ export function DocumentoDetailPage() {
   const podeRegistrarPagamento =
     documento.estado === "EMITIDA" || documento.estado === "PARCIALMENTE_PAGA";
   const estaPaga = documento.estado === "PAGA";
+
+  // URL base para o PDF (backend)
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888/api/v1";
 
   return (
     <div className="space-y-6 px-4 sm:px-6">
@@ -158,7 +163,7 @@ export function DocumentoDetailPage() {
           {podeEmitir && (
             <Button
               size="sm"
-              onClick={handleEmitir}
+              onClick={() => setEmitirModalOpen(true)}
               disabled={emitirMutation.isPending}
             >
               <CheckCircle size={16} className="mr-2" />
@@ -169,7 +174,7 @@ export function DocumentoDetailPage() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={handleAnular}
+              onClick={() => setAnularModalOpen(true)}
               disabled={anularMutation.isPending}
             >
               <Ban size={16} className="mr-2" />
@@ -178,6 +183,38 @@ export function DocumentoDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmação para Emitir */}
+      <ConfirmModal
+        isOpen={emitirModalOpen}
+        onOpenChange={setEmitirModalOpen}
+        onConfirm={handleEmitir}
+        title="Emitir Documento"
+        description="Após a emissão, o documento receberá um número único e não poderá ser editado. Deseja continuar?"
+        confirmVariant="default"
+        confirmText="Emitir"
+        confirmIcon={<CheckCircle size={16} />}
+        icon={<CheckCircle size={28} />}
+        iconClassName="bg-primary/10 text-primary"
+        isLoading={emitirMutation.isPending}
+      />
+
+      {/* Modal de confirmação para Anular */}
+      <ConfirmModal
+        isOpen={anularModalOpen}
+        onOpenChange={setAnularModalOpen}
+        onConfirm={handleAnular}
+        title="Anular Documento"
+        description="Ao anular, o documento será cancelado e não poderá ser recuperado. Deseja continuar?"
+        confirmVariant="destructive"
+        confirmText="Anular"
+        confirmIcon={<Ban size={16} />}
+        icon={<Ban size={28} />}
+        iconClassName="bg-destructive/10 text-destructive"
+        isLoading={anularMutation.isPending}
+      />
+
+      {/* (O resto da página permanece igual: informações, itens, pagamentos, etc.) */}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Informações do Documento */}
