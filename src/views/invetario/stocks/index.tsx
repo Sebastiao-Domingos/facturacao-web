@@ -152,7 +152,7 @@ const columns: ColumnDef<Stock>[] = [
   },
 ];
 
-export function StockPage() {
+export function StocksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -301,7 +301,7 @@ export function StockPage() {
       density="compact"
       emptyMessage="Nenhum stock encontrado."
       actions={["view"]}
-      onView={(row) => handleVerHistorico(row)}
+      onView={(row) => (window.location.href = `/invetario/stocks/${row.id}`)}
       customActions={[
         {
           key: "movimentar",

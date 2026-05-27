@@ -23,12 +23,19 @@ export function TabelaHistoricoStock({ stockId }: TabelaHistoricoStockProps) {
   const { data: historico, isLoading } = useHistoricoStock(stockId);
   const [filterTipo, setFilterTipo] = useState<string>("todos");
 
+  const movimentacoes = useMemo(() => {
+    if (!historico) return [];
+    if (Array.isArray(historico)) return historico;
+    if (historico.results && Array.isArray(historico.results))
+      return historico.results;
+    return [];
+  }, [historico]);
+
   // Filtrar por tipo
   const filteredData = useMemo(() => {
-    if (!historico) return [];
-    if (filterTipo === "todos") return historico;
-    return historico.filter((mov) => mov.tipo === filterTipo);
-  }, [historico, filterTipo]);
+    if (filterTipo === "todos") return movimentacoes;
+    return movimentacoes.filter((mov) => mov.tipo === filterTipo);
+  }, [movimentacoes, filterTipo]);
 
   // Definição das colunas
   const columns: ColumnDef<MovimentacaoResponse>[] = useMemo(
@@ -147,7 +154,7 @@ export function TabelaHistoricoStock({ stockId }: TabelaHistoricoStockProps) {
     );
   }
 
-  if (!historico || historico.length === 0) {
+  if (movimentacoes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Calendar size={48} className="mb-4 text-muted-foreground" />

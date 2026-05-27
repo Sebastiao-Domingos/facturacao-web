@@ -22,7 +22,7 @@ export class StockService {
   }
 
   async getStock(id: string): Promise<Stock> {
-    const response = await api.get<Stock>(`${this.endpoint}/${id}`);
+    const response = await api.get<Stock>(`${this.endpoint}${id}`);
     return response.data;
   }
 
@@ -55,11 +55,13 @@ export class StockService {
   }
 
   // GET /api/v1/faturacao/movimentacoes/?stock_filial={id}
-  async getHistorico(stockId: string): Promise<MovimentacaoResponse[]> {
-    const response = await api.get(`${this.endpoint}movimentacoes/`, {
-      params: { stock_filial: stockId },
-    });
-    const validated = MovimentacaoListResponseSchema.parse(response.data);
-    return validated.results;
+  async getHistorico(
+    stockId: string,
+  ): Promise<PaginatedResponse<MovimentacaoResponse>> {
+    const response = await api.get<PaginatedResponse<MovimentacaoResponse>>(
+      `/faturacao/movimentacoes/?stock_filial=${stockId}`,
+    );
+
+    return response.data;
   }
 }

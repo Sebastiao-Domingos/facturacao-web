@@ -26,6 +26,7 @@ import { ClienteList } from "@/src/schemas/empresa/clientes/cliente-schema";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { ClienteForm } from "./forms/cliente-form";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function ClientesPage() {
   const router = useRouter();
@@ -39,13 +40,13 @@ export function ClientesPage() {
     ClienteList | undefined
   >();
 
+  const { hasPermission } = usePermissions();
+
   const { data, isLoading, isError } = useClientes({
     search: searchTerm || undefined,
     tipo: filterTipo !== "todos" ? (filterTipo as "P" | "E") : undefined,
     ativo: filterAtivo !== "todos" ? filterAtivo === "ativo" : undefined,
   });
-
-  const { toggleStatusMutation } = useClienteMutations();
 
   const clientes = data?.results || [];
 
@@ -57,14 +58,6 @@ export function ClientesPage() {
   const handleDelete = (cliente: ClienteList) => {
     setClienteToDelete(cliente);
     setDeleteModalOpen(true);
-  };
-
-  const handleToggleStatus = (cliente: ClienteList) => {
-    toggleStatusMutation.mutate({ id: cliente.id, ativo: !cliente.ativo });
-  };
-
-  const handleViewDetails = (cliente: ClienteList) => {
-    router.push(`/clientes/${cliente.id}`);
   };
 
   const handleSuccess = () => {
@@ -84,7 +77,6 @@ export function ClientesPage() {
       accessorKey: "tipo_display",
       header: "Tipo",
       sortable: true,
-      width: 120,
     },
     {
       accessorKey: "nif",
@@ -125,20 +117,22 @@ export function ClientesPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <HeaderPage
         title="Clientes"
         description="Gerencie os clientes da sua empresa, incluindo particulares e empresas."
       >
-        <Button
-          onClick={() => {
-            setSelectedCliente(undefined);
-            setModalOpen(true);
-          }}
-        >
-          <Plus size={16} className="mr-2" />
-          Novo
-        </Button>
+        {hasPermission("gerir_clientes") && (
+          <Button
+            onClick={() => {
+              setSelectedCliente(undefined);
+              setModalOpen(true);
+            }}
+          >
+            <Plus size={16} className="mr-2" />
+            Novo
+          </Button>
+        )}
       </HeaderPage>
 
       {/* Filtros */}
@@ -155,7 +149,7 @@ export function ClientesPage() {
 
         <div className="flex gap-3">
           <Select value={filterTipo} onValueChange={setFilterTipo}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-37.5">
               <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +160,7 @@ export function ClientesPage() {
           </Select>
 
           <Select value={filterAtivo} onValueChange={setFilterAtivo}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-32.5">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -197,18 +191,10 @@ export function ClientesPage() {
           showCount={true}
           density="normal"
           emptyMessage="Nenhum cliente encontrado."
-          actions={["edit", "delete"]}
+          actions={["view"]}
+          onView={(row) => router.push(`/equipa/clientes/${row.id}`)}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          customActions={[
-            {
-              key: "view-details",
-              label: "Ver Detalhes",
-              icon: <Eye size={14} />,
-              variant: "default",
-              onClick: handleViewDetails,
-            },
-          ]}
         />
       )}
 

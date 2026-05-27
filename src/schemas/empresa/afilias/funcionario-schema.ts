@@ -62,7 +62,7 @@ export const FuncionarioCreateSchema = z.object({
   telemovel: FuncionarioBaseSchema.telemovel,
   papel: FuncionarioBaseSchema.papel,
   ativo: FuncionarioBaseSchema.ativo,
-  filial: FuncionarioBaseSchema.filial,
+  filial: FuncionarioBaseSchema.filial.optional(),
   endereco: FuncionarioBaseSchema.endereco,
   password: FuncionarioBaseSchema.password,
 });

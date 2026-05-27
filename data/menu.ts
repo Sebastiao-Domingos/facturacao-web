@@ -147,8 +147,8 @@ export const data: { navMain: NavItem[] } = {
           icon: Store,
         },
         {
-          title: "Afiliares",
-          url: "/afiliares",
+          title: "Filiais",
+          url: "/filiais",
           icon: Home,
         },
         {

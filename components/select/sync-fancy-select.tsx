@@ -35,7 +35,6 @@ export const asyncSelectOptionSchema = z.object({
 
 export type AsyncSelectOption = z.infer<typeof asyncSelectOptionSchema>;
 
-// Tipos base reutilizáveis entre as duas interfaces públicas
 interface AsyncSelectConfig {
   endpoint: string;
   method?: "GET" | "POST" | "PUT" | "DELETE";
@@ -61,11 +60,11 @@ interface AsyncSelectUI {
   helperText?: string;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "outline" | "ghost";
+  defaultValue?: string | null; // ✅ Novo atributo
 }
 
 export interface AsyncFancySelectProps
-  extends AsyncSelectConfig,
-    AsyncSelectUI {
+  extends AsyncSelectConfig, AsyncSelectUI {
   error?: string;
   className?: string;
   value?: string | null;
@@ -74,15 +73,15 @@ export interface AsyncFancySelectProps
 }
 
 export interface FormAsyncFancySelectProps<
-  TFieldValues extends FieldValues = FieldValues
-> extends AsyncSelectConfig,
-    AsyncSelectUI {
+  TFieldValues extends FieldValues = FieldValues,
+>
+  extends AsyncSelectConfig, AsyncSelectUI {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EXTRACÇÃO DE ARRAY — normaliza respostas paginadas e simples
+// EXTRACÇÃO DE ARRAY
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ARRAY_KEYS = ["items", "results", "data", "records"] as const;
@@ -100,13 +99,14 @@ function extractArray(data: unknown): unknown[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HOOK — toda a lógica isolada e testável
+// HOOK
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface UseAsyncFancySelectOptions extends AsyncSelectConfig {
   searchable?: boolean;
   disabled?: boolean;
   value?: string | null;
+  defaultValue?: string | null;
   onChange?: (value: string | null, rawData?: unknown) => void;
   onSearch?: (searchTerm: string) => void;
 }
@@ -125,6 +125,7 @@ function useAsyncFancySelect({
   searchable = false,
   disabled = false,
   value: externalValue,
+  defaultValue,
   onChange,
   onLoad,
   onError,
@@ -133,7 +134,11 @@ function useAsyncFancySelect({
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [internalValue, setInternalValue] = React.useState<string | null>(
-    externalValue ?? null
+    () => {
+      if (externalValue !== undefined) return externalValue;
+      if (defaultValue !== undefined) return defaultValue;
+      return null;
+    },
   );
   const [options, setOptions] =
     React.useState<AsyncSelectOption[]>(staticOptions);
@@ -143,12 +148,12 @@ function useAsyncFancySelect({
   const selectRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Sincronização controlada (evita loop infinito com deps estáveis)
+  // Sincronização com value controlado
   React.useEffect(() => {
-    if (externalValue !== undefined) setInternalValue(externalValue ?? null);
+    if (externalValue !== undefined) setInternalValue(externalValue);
   }, [externalValue]);
 
-  // ── Fetch ────────────────────────────────────────────────────────────────
+  // Carregar opções
   const loadOptions = React.useCallback(
     async (search?: string) => {
       if (disabled) return;
@@ -196,27 +201,49 @@ function useAsyncFancySelect({
         setLoading(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [endpoint, method, valueField, displayField, searchField, disabled]
-    // Nota: extraParams, axiosConfig, staticOptions, transformResponse excluídos
-    // intencionalmente — devem ser memoizados pelo consumidor (useMemo/useCallback)
-    // para evitar re-fetches infinitos.
+    [endpoint, method, valueField, displayField, searchField, disabled],
   );
 
-  // Carga inicial
   React.useEffect(() => {
     if (!disabled) loadOptions();
   }, [loadOptions, disabled]);
 
-  // Busca com debounce — só activo quando searchField está definido
+  // Aplicar defaultValue automaticamente quando as opções estiverem disponíveis
+  React.useEffect(() => {
+    if (
+      defaultValue &&
+      externalValue === undefined &&
+      internalValue === defaultValue &&
+      options.length > 0 &&
+      !options.find((o) => o.value === defaultValue)
+    ) {
+      // Se defaultValue não existe nas opções, redefinir
+      setInternalValue(null);
+      onChange?.(null, null);
+      return;
+    }
+
+    if (
+      defaultValue &&
+      externalValue === undefined &&
+      internalValue === null &&
+      options.length > 0
+    ) {
+      const matchedOption = options.find((o) => o.value === defaultValue);
+      if (matchedOption && !matchedOption.disabled) {
+        setInternalValue(defaultValue);
+        onChange?.(defaultValue, matchedOption.raw);
+      }
+    }
+  }, [defaultValue, externalValue, internalValue, options, onChange]);
+
+  // Debounce de pesquisa
   React.useEffect(() => {
     if (!searchable || !searchField) return;
-
     const timer = setTimeout(() => {
       loadOptions(searchTerm || undefined);
       if (searchTerm) onSearchCallback?.(searchTerm);
     }, searchDelay);
-
     return () => clearTimeout(timer);
   }, [
     searchTerm,
@@ -227,7 +254,7 @@ function useAsyncFancySelect({
     onSearchCallback,
   ]);
 
-  // Filtro local (quando não há busca na API)
+  // Filtro local
   const filteredOptions = React.useMemo(() => {
     if (!searchTerm || (searchable && searchField)) return options;
     const lower = searchTerm.toLowerCase();
@@ -236,7 +263,6 @@ function useAsyncFancySelect({
 
   const selectedOption = options.find((o) => o.value === internalValue) ?? null;
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleSelect = React.useCallback(
     (option: AsyncSelectOption) => {
       if (disabled || option.disabled) return;
@@ -246,7 +272,7 @@ function useAsyncFancySelect({
       setIsOpen(false);
       setSearchTerm("");
     },
-    [disabled, internalValue, onChange]
+    [disabled, internalValue, onChange],
   );
 
   const handleClear = React.useCallback(
@@ -257,14 +283,13 @@ function useAsyncFancySelect({
       onChange?.(null, null);
       setIsOpen(false);
     },
-    [disabled, onChange]
+    [disabled, onChange],
   );
 
   const toggleOpen = React.useCallback(() => {
     if (!disabled && !loading) setIsOpen((v) => !v);
   }, [disabled, loading]);
 
-  // Fechar ao clicar fora
   React.useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
@@ -276,7 +301,6 @@ function useAsyncFancySelect({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Foco no input ao abrir
   React.useEffect(() => {
     if (isOpen && searchable) {
       const id = setTimeout(() => searchInputRef.current?.focus(), 80);
@@ -304,26 +328,23 @@ function useAsyncFancySelect({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ESTILOS CONSTANTES (fora do render para evitar recriação)
+// ESTILOS (shadcn/ui)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SIZE_STYLES = {
-  sm: { trigger: "py-1.5 px-3 text-sm", icon: 14 },
-  md: { trigger: "py-2 px-3 text-base", icon: 16 },
-  lg: { trigger: "py-3 px-4 text-lg", icon: 18 },
+  sm: { trigger: "h-8 px-2 text-xs", icon: 14 },
+  md: { trigger: "h-10 px-3 text-sm", icon: 16 },
+  lg: { trigger: "h-12 px-4 text-base", icon: 18 },
 } as const;
 
 const VARIANT_STYLES = {
-  default:
-    "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
-  outline:
-    "bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
-  ghost:
-    "bg-transparent border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800",
+  default: "",
+  outline: "border-2",
+  ghost: "border-transparent shadow-none hover:bg-accent",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUB-COMPONENTES
+// DROPDOWN CONTENT
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface DropdownContentProps {
@@ -357,41 +378,34 @@ const DropdownContent = React.memo(function DropdownContent({
     <div
       role="listbox"
       aria-label="Opções disponíveis"
-      className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+      className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover shadow-md animate-in fade-in zoom-in-95"
     >
       {searchable && (
-        <div className="p-2 border-b border-gray-100 dark:border-gray-800">
-          <div className="relative">
-            <Search
-              size={13}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Pesquisar…"
-              aria-label="Pesquisar opções"
-              className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
+        <div className="flex items-center border-b border-border px-3">
+          <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Pesquisar…"
+            aria-label="Pesquisar opções"
+            className="flex h-10 w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
-      <div className="max-h-60 overflow-y-auto overscroll-contain" role="group">
-        {/* Estado: carregando */}
+      <div className="max-h-60 overflow-y-auto overscroll-contain">
         {loading && filteredOptions.length === 0 && (
-          <div className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-gray-400">
+          <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-muted-foreground">
             <Loader2 size={14} className="animate-spin" />
             <span>A carregar…</span>
           </div>
         )}
 
-        {/* Estado: erro */}
         {!loading && error && (
-          <div className="flex flex-col items-center gap-2 px-3 py-4 text-sm text-red-500">
+          <div className="flex flex-col items-center gap-2 px-3 py-6 text-sm text-destructive">
             <div className="flex items-center gap-1.5">
               <AlertCircle size={14} />
               <span>{error}</span>
@@ -399,7 +413,7 @@ const DropdownContent = React.memo(function DropdownContent({
             <button
               type="button"
               onClick={onReload}
-              className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition"
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
             >
               <RefreshCw size={11} />
               Tentar novamente
@@ -407,14 +421,12 @@ const DropdownContent = React.memo(function DropdownContent({
           </div>
         )}
 
-        {/* Estado: vazio */}
         {!loading && !error && filteredOptions.length === 0 && (
-          <p className="px-3 py-4 text-sm text-center text-gray-400">
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">
             {searchTerm ? "Nenhuma opção encontrada" : "Sem dados disponíveis"}
           </p>
         )}
 
-        {/* Lista de opções */}
         {filteredOptions.map((option) => {
           const isSelected = selectedValue === option.value;
           return (
@@ -426,22 +438,21 @@ const DropdownContent = React.memo(function DropdownContent({
               disabled={option.disabled}
               onClick={() => onSelect(option)}
               className={cn(
-                "w-full px-3 py-2 text-left flex items-center justify-between gap-2 transition-colors duration-100",
-                "hover:bg-gray-50 dark:hover:bg-gray-800",
-                option.disabled && "opacity-40 cursor-not-allowed",
-                isSelected &&
-                  "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                "relative flex w-full cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                option.disabled && "pointer-events-none opacity-50",
+                isSelected && "bg-accent text-accent-foreground",
               )}
             >
               <span className="flex items-center gap-2 flex-1 min-w-0">
                 {option.icon && (
-                  <span className="text-gray-400 shrink-0">{option.icon}</span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {option.icon}
+                  </span>
                 )}
-                <span className="text-sm truncate">{option.label}</span>
+                <span className="truncate">{option.label}</span>
               </span>
-              {isSelected && (
-                <Check size={iconSize - 2} className="shrink-0 text-blue-500" />
-              )}
+              {isSelected && <Check size={iconSize - 2} className="shrink-0" />}
             </button>
           );
         })}
@@ -455,7 +466,6 @@ const DropdownContent = React.memo(function DropdownContent({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function AsyncFancySelect({
-  // API
   endpoint,
   method = "GET",
   axiosConfig = {},
@@ -466,7 +476,6 @@ export function AsyncFancySelect({
   extraParams = {},
   transformResponse,
   staticOptions = [],
-  // UI
   placeholder = "Seleccionar…",
   searchable = false,
   clearable = false,
@@ -478,8 +487,8 @@ export function AsyncFancySelect({
   label,
   required,
   helperText,
-  // Callbacks
   value,
+  defaultValue,
   onChange,
   onLoad,
   onError,
@@ -513,6 +522,7 @@ export function AsyncFancySelect({
     searchable,
     disabled,
     value,
+    defaultValue,
     onChange,
     onLoad,
     onError,
@@ -525,12 +535,12 @@ export function AsyncFancySelect({
 
   return (
     <div className={cn("w-full space-y-1.5", className)} ref={selectRef}>
-      {/* Label */}
       {label && (
         <label
           className={cn(
-            "block text-sm font-medium text-gray-700 dark:text-gray-300",
-            required && "after:content-['*'] after:ml-0.5 after:text-red-500"
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+            required &&
+              "after:ml-0.5 after:text-destructive after:content-['*']",
           )}
         >
           {label}
@@ -538,7 +548,6 @@ export function AsyncFancySelect({
       )}
 
       <div className="relative">
-        {/* Trigger */}
         <button
           type="button"
           onClick={toggleOpen}
@@ -546,35 +555,31 @@ export function AsyncFancySelect({
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           className={cn(
-            "relative w-full text-left rounded-lg transition-all duration-200",
-            "flex items-center justify-between gap-2",
+            "flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             triggerSize,
             VARIANT_STYLES[variant],
+            hasError && "border-destructive focus:ring-destructive",
             !disabled &&
               !hasError &&
-              "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-transparent",
-            disabled &&
-              "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800",
-            hasError && "border-red-500 focus-visible:ring-red-500"
+              "hover:bg-accent hover:text-accent-foreground",
           )}
         >
           <span
             className={cn(
-              "flex-1 truncate",
-              !selectedOption && "text-gray-400 dark:text-gray-500"
+              "flex-1 truncate text-left",
+              !selectedOption && "text-muted-foreground",
             )}
           >
             {loading && !selectedOption ? (
-              <span className="flex items-center gap-2 text-gray-400">
+              <span className="flex items-center gap-2">
                 <Loader2 size={iconSize} className="animate-spin" />A carregar…
               </span>
             ) : (
-              selectedOption?.label ?? placeholder
+              (selectedOption?.label ?? placeholder)
             )}
           </span>
 
           <span className="flex items-center gap-1 shrink-0">
-            {/* Botão limpar */}
             {clearable && selectedOption && !disabled && (
               <span
                 role="button"
@@ -587,7 +592,7 @@ export function AsyncFancySelect({
                     handleClear(e as unknown as React.MouseEvent);
                   }
                 }}
-                className="p-0.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                className="rounded-full p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
               >
                 <X size={iconSize - 2} />
               </span>
@@ -595,14 +600,13 @@ export function AsyncFancySelect({
             <ChevronDown
               size={iconSize}
               className={cn(
-                "transition-transform duration-200",
-                isOpen && "rotate-180"
+                "text-muted-foreground transition-transform duration-200",
+                isOpen && "rotate-180",
               )}
             />
           </span>
         </button>
 
-        {/* Dropdown */}
         {isOpen && !disabled && (
           <DropdownContent
             loading={loading}
@@ -620,12 +624,11 @@ export function AsyncFancySelect({
         )}
       </div>
 
-      {/* Mensagem de erro ou helper */}
       {(displayError || helperText) && (
         <p
           className={cn(
             "text-xs flex items-center gap-1",
-            hasError ? "text-red-500" : "text-gray-500 dark:text-gray-400"
+            hasError ? "text-destructive" : "text-muted-foreground",
           )}
         >
           {hasError && <AlertCircle size={11} />}
@@ -641,11 +644,12 @@ export function AsyncFancySelect({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function FormAsyncFancySelect<
-  TFieldValues extends FieldValues = FieldValues
+  TFieldValues extends FieldValues = FieldValues,
 >({
   control,
   name,
   required,
+  defaultValue,
   ...rest
 }: FormAsyncFancySelectProps<TFieldValues>) {
   const {
@@ -655,6 +659,9 @@ export function FormAsyncFancySelect<
     name,
     control,
     rules: { required: required ? "Este campo é obrigatório" : undefined },
+    // Converte null para undefined e passa o valor (com type assertion)
+    defaultValue:
+      defaultValue !== undefined ? (defaultValue as any) : undefined,
   });
 
   return (

@@ -1,283 +1,185 @@
-// src/app/(dashboard)/filiais/page.tsx
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  MapPin,
-  Search,
-  Building2,
-  ArrowUpRight,
-  MoreHorizontal,
-  Navigation,
-  ShieldCheck,
-  PackagePlus,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Search, Eye, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { HeaderPage } from "@/components/header-page";
+import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import { ErrorComponent } from "@/components/error-component";
-import { HeaderPage } from "@/components/header-page";
-import { useDebounce } from "../../../hooks/use-debounde";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AfilialForm } from "./forms/afilia-form";
-import { Afilias } from "@/src/schemas/empresa/afilias/afilia-schema";
-
-interface OpenModalProps {
-  isOpened: boolean;
-  defaultValue?: Afilias;
-}
+import { AfiliasList } from "@/src/schemas/empresa/afilias/afilia-schema";
+import { toast } from "sonner";
 
 export function FiliaisPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const [openModal, setOpenModal] = useState<OpenModalProps>({
-    isOpened: false,
-    defaultValue: undefined,
-  });
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedFilial, setSelectedFilial] = useState<any>(null);
 
-  const { data, isLoading, isError } = useAfilia();
+  const { data: filiais, isLoading, isError } = useAfilia();
 
-  const filteredFiliais = useMemo(() => {
-    if (!data) return [];
-    return data.filter(
+  const filteredFiliais =
+    filiais?.filter(
       (f) =>
-        f.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        f.endereco?.municipio_nome
-          ?.toLowerCase()
-          .includes(debouncedSearch.toLowerCase()) ||
-        f.codigo_agt.toLowerCase().includes(debouncedSearch.toLowerCase()),
-    );
-  }, [data, debouncedSearch]);
+        f.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        f.codigo_agt.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || [];
+
+  const handleEdit = (row: AfiliasList) => {
+    setSelectedFilial(row);
+    setOpenModal(true);
+  };
+
+  const handleDelete = (row: AfiliasList) => {
+    // Implementar soft delete (desativar)
+    console.log("Desativar filial", row.id);
+    toast.info("Funcionalidade em desenvolvimento");
+  };
+
+  const handleToggleStatus = (row: AfiliasList) => {
+    // Implementar ativação/desativação
+    console.log("Toggle status", row.id);
+    toast.info("Funcionalidade em desenvolvimento");
+  };
+
+  const columns: ColumnDef<AfiliasList>[] = [
+    {
+      accessorKey: "nome",
+      header: "Nome",
+      sortable: true,
+      filterable: true,
+      cell: (value) => <span className="font-medium">{String(value)}</span>,
+    },
+    {
+      accessorKey: "codigo_agt",
+      header: "Código AGT",
+      sortable: true,
+    },
+    {
+      accessorKey: "e_sede",
+      header: "Sede",
+      width: 80,
+      cell: (value) => (value ? <Badge variant="default">Sede</Badge> : null),
+    },
+    {
+      accessorKey: "total_funcionarios",
+      header: "Funcionários",
+      sortable: true,
+      width: 100,
+      className: "text-center",
+    },
+    {
+      accessorKey: "ativo",
+      header: "Status",
+      sortable: true,
+      width: 100,
+      cell: (value) => (
+        <Badge
+          variant={value ? "default" : "secondary"}
+          className={value ? "bg-green-600" : ""}
+        >
+          {value ? "Ativo" : "Inativo"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "created_at",
+      header: "Criação",
+      sortable: true,
+      width: 120,
+      cell: (value) =>
+        format(new Date(String(value)), "dd/MM/yyyy", { locale: pt }),
+    },
+  ];
 
   if (isError) {
     return (
       <ErrorComponent
-        message="Erro ao carregar as filiais"
+        message="Erro ao carregar filiais"
         description="Verifique sua conexão e tente novamente."
       />
     );
   }
 
   return (
-    <>
-      <div className="space-y-6 p-4 md:p-6 bg-background">
-        <HeaderPage
-          title="Filiais & Pontos de Venda"
-          description="Gerencie as localizações e séries de faturação da sua empresa."
+    <div className="space-y-6">
+      <HeaderPage
+        title="Filiais & Pontos de Venda"
+        description="Gerencie as localizações e séries de faturação da sua empresa."
+      >
+        <Button
+          onClick={() => {
+            setSelectedFilial(null);
+            setOpenModal(true);
+          }}
         >
-          <Button
-            className="h-10 gap-2 font-medium px-4 shadow-sm"
-            onClick={() =>
-              setOpenModal({
-                isOpened: !openModal.isOpened,
-                defaultValue: undefined,
-              })
-            }
-          >
-            <PackagePlus size={16} />
-            Novo(a)
-          </Button>
-        </HeaderPage>
+          <Plus size={16} className="mr-2" />
+          Nova Filial
+        </Button>
+      </HeaderPage>
 
-        {/* Search + Stats (Barra de ferramentas limpa) */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="relative max-w-md w-full">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar por nome, município ou código AGT..."
-              className="h-10 pl-9 bg-background border-input text-sm rounded-md"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
-            {filteredFiliais.length} de {data?.length || 0} filiais
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative max-w-md w-full">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por nome ou código AGT..."
+            className="pl-9"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-
-        {/* Loading State - Skeleton Normal */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-64 rounded-xl border border-border bg-card animate-pulse"
-              />
-            ))}
-          </div>
-        ) : (
-          <>
-            {/* Grid de Filiais Normalizada */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredFiliais.map((filial) => (
-                <div
-                  key={filial.id}
-                  className={cn(
-                    "relative flex flex-col justify-between p-5 rounded-xl border bg-card shadow-sm transition-colors hover:bg-muted/30",
-                    filial.e_sede ? "border-primary/50" : "border-border",
-                  )}
-                >
-                  <div className="space-y-4">
-                    {/* Header do Card */}
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-semibold text-foreground tracking-tight">
-                            {filial.nome}
-                          </h3>
-                          {filial.e_sede && (
-                            <Badge
-                              variant="default"
-                              className="text-[10px] font-semibold px-2 py-0 h-4 bg-primary text-primary-foreground uppercase rounded"
-                            >
-                              Sede
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                          <ShieldCheck
-                            size={14}
-                            className="text-muted-foreground/70"
-                          />
-                          AGT: {filial.codigo_agt}
-                        </p>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-md hover:bg-muted"
-                          >
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setOpenModal({
-                                isOpened: !openModal.isOpened,
-                                defaultValue: filial,
-                              })
-                            }
-                          >
-                            Editar Filial
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Ver Inventário</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            Desativar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {/* Endereço Sólido */}
-                    <div className="bg-muted/60 border border-border/60 rounded-lg p-4 space-y-3">
-                      <div className="flex gap-2.5">
-                        <MapPin
-                          className="text-muted-foreground shrink-0 mt-0.5"
-                          size={16}
-                        />
-                        <div className="text-xs leading-normal">
-                          <p className="font-medium text-foreground">
-                            {filial.endereco.rua}, {filial.endereco.bairro}
-                          </p>
-                          <p className="text-muted-foreground mt-0.5">
-                            {filial.endereco.municipio_nome} &bull;{" "}
-                            {filial.endereco.provincia_nome}
-                          </p>
-                        </div>
-                      </div>
-
-                      {filial.endereco.ponto_referencia && (
-                        <div className="flex gap-2.5 pt-2.5 border-t border-border/60">
-                          <Navigation
-                            className="text-muted-foreground shrink-0 mt-0.5"
-                            size={14}
-                          />
-                          <div className="text-xs">
-                            <span className="text-[10px] font-bold uppercase text-muted-foreground/80 block">
-                              Referência
-                            </span>
-                            <p className="text-muted-foreground mt-0.5">
-                              {filial.endereco.ponto_referencia}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer do Card */}
-                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/60">
-                    <div className="text-xs">
-                      <span className="text-[10px] font-medium uppercase text-muted-foreground block">
-                        Série
-                      </span>
-                      <span className="font-bold text-sm text-foreground">
-                        {filial.serie_documentos}
-                      </span>
-                    </div>
-
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto font-medium text-xs text-primary flex items-center gap-1 hover:underline"
-                    >
-                      Inventário
-                      <ArrowUpRight size={14} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Empty State Tradicional */}
-            {filteredFiliais.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 border border-dashed border-border rounded-xl bg-card p-8">
-                <Building2
-                  size={40}
-                  className="text-muted-foreground/40 mb-3"
-                />
-                <h3 className="text-base font-semibold text-foreground mb-1">
-                  Nenhuma filial encontrada
-                </h3>
-                <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
-                  Não existem registos que correspondam aos termos pesquisados.
-                </p>
-                {searchTerm && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9"
-                    onClick={() => setSearchTerm("")}
-                  >
-                    Limpar pesquisa
-                  </Button>
-                )}
-              </div>
-            )}
-          </>
-        )}
+        <div className="text-sm text-muted-foreground">
+          {filteredFiliais.length}{" "}
+          {filteredFiliais.length === 1 ? "filial" : "filiais"}
+        </div>
       </div>
 
-      {openModal.isOpened && (
-        <AfilialForm
-          onOpenChange={(e) =>
-            setOpenModal({ isOpened: e, defaultValue: undefined })
-          }
-          open={openModal.isOpened}
-          defaultValues={openModal.defaultValue}
+      {isLoading ? (
+        <div className="rounded-lg border border-border">
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <DataTableV2
+          data={filteredFiliais}
+          columns={columns}
+          rowKey="id"
+          selectable={true}
+          showCount={true}
+          density="compact"
+          emptyMessage="Nenhuma filial encontrada."
+          actions={["view", "edit", "delete"]}
+          onView={(row) => router.push(`/configuracoes/filiais/${row.id}`)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          customActions={[
+            {
+              key: "toggle-status",
+              label: (row) => (row.ativo ? "Desativar" : "Ativar"),
+              icon: (row) =>
+                row.ativo ? <PowerOff size={14} /> : <Power size={14} />,
+              variant: (row) => (row.ativo ? "warning" : "success"),
+              onClick: handleToggleStatus,
+            },
+          ]}
         />
       )}
-    </>
+
+      <AfilialForm
+        open={openModal}
+        onOpenChange={setOpenModal}
+        defaultValues={selectedFilial}
+      />
+    </div>
   );
 }

@@ -40,14 +40,18 @@ import {
   FuncionarioFormSchema,
   papeis,
 } from "@/src/schemas/empresa/afilias/funcionario-schema";
-import { useFuncionarioMutations } from "@/src/hooks/empresa/use-funcionario";
+import {
+  useFuncionarioMutations,
+  useFuncionarioAtual,
+} from "@/src/hooks/empresa/use-funcionario";
+import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AsyncFancySelect } from "@/components/select/sync-fancy-select";
-import { fi } from "date-fns/locale";
+import { FuncionarioResponse } from "@/src/schemas/empresa/funcionarios/funcionario-schema";
 
 interface FuncionarioFormProps {
-  defaultValues?: any;
+  defaultValues?: FuncionarioResponse;
   onOpenChange: (value: boolean) => void;
   open: boolean;
   onSuccess: () => void;
@@ -74,9 +78,26 @@ export function FuncionarioForm({
   open,
   onSuccess,
 }: FuncionarioFormProps) {
+  const [provincia, setProvincia] = useState(
+    defaultValues?.endereco?.provincia_id || "",
+  );
   const [etapaAtual, setEtapaAtual] = useState(1);
+
+  const { data: perfilAtual, isLoading: isLoadingPerfil } =
+    useFuncionarioAtual();
   const { createMutation, updateMutation } = useFuncionarioMutations();
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const { data: filiaisData, isLoading: isLoadingFiliais } = useAfilia();
+
+  const isSuperAdmin = perfilAtual?.papel === "SUPERADMIN";
+  const isAdmin = perfilAtual?.papel === "ADMIN";
+  const isGestor = perfilAtual?.papel === "GESTOR";
+  const podeEscolherFilial = isSuperAdmin || isAdmin;
+
+  const isLoading =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    isLoadingPerfil ||
+    isLoadingFiliais;
   const isEditMode = !!defaultValues?.id;
 
   const { first_name, last_name } = getFirstAndLastName(
@@ -94,7 +115,11 @@ export function FuncionarioForm({
       telemovel: defaultValues?.telemovel || "",
       papel: defaultValues?.papel || "OPERADOR",
       ativo: defaultValues?.ativo ?? true,
-      filial: defaultValues?.filial || "",
+      filial:
+        defaultValues?.filial_detalhes?.id ||
+        (isGestor ? perfilAtual?.filial_detalhes?.id : ""),
+      password: "",
+      confirm_password: "",
       endereco: {
         bairro: defaultValues?.endereco?.bairro || "",
         rua: defaultValues?.endereco?.rua || "",
@@ -106,18 +131,31 @@ export function FuncionarioForm({
 
   const totalEtapas = etapas.length;
 
+  // Gestor: força a filial
+  useEffect(() => {
+    if (
+      isGestor &&
+      perfilAtual?.filial_detalhes?.id &&
+      !form.getValues("filial")
+    ) {
+      form.setValue("filial", perfilAtual.filial_detalhes.id);
+    }
+  }, [isGestor, perfilAtual, form]);
+
   const avancarEtapa = async () => {
     let isValid = false;
 
     if (etapaAtual === 1) {
-      isValid = await form.trigger([
+      const campos = [
         "first_name",
         "last_name",
         "telemovel",
         "cargo",
         "bi",
         "papel",
-      ]);
+      ];
+      if (podeEscolherFilial) campos.push("filial");
+      isValid = await form.trigger(campos as any);
     } else if (etapaAtual === 2) {
       isValid = await form.trigger([
         "endereco.bairro",
@@ -126,7 +164,6 @@ export function FuncionarioForm({
       ]);
     } else if (etapaAtual === 3) {
       isValid = await form.trigger("email");
-
       if (!isEditMode && form.getValues("password")) {
         const passwordValid = await form.trigger([
           "password",
@@ -142,15 +179,18 @@ export function FuncionarioForm({
   };
 
   const voltarEtapa = () => {
-    if (etapaAtual > 1) {
-      setEtapaAtual(etapaAtual - 1);
-    }
+    if (etapaAtual > 1) setEtapaAtual(etapaAtual - 1);
   };
 
   const onSubmit: SubmitHandler<FuncionarioFormData> = async (data) => {
+    // Validação extra da filial
+    if (!data.filial) {
+      toast.error("Filial é obrigatória.");
+      return;
+    }
+
     try {
-      // Prepara os dados para envio
-      const submitData = {
+      const submitData: any = {
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
@@ -159,14 +199,11 @@ export function FuncionarioForm({
         telemovel: data.telemovel,
         papel: data.papel,
         ativo: data.ativo,
-        filial: undefined,
+        filial_id: data.filial,
         endereco: data.endereco,
       };
 
-      // Adiciona password apenas se fornecida
-      if (data.password) {
-        Object.assign(submitData, { password: data.password });
-      }
+      if (data.password) submitData.password = data.password;
 
       if (isEditMode) {
         await updateMutation.mutateAsync({
@@ -183,6 +220,7 @@ export function FuncionarioForm({
       onOpenChange(false);
       form.reset();
       setEtapaAtual(1);
+      setProvincia("");
     } catch (error: any) {
       console.error(error);
       toast.error(
@@ -195,12 +233,11 @@ export function FuncionarioForm({
     if (!open) {
       form.reset();
       setEtapaAtual(1);
+      setProvincia("");
     }
   }, [open, form]);
 
-  if (form.formState.errors) {
-    console.log(form.formState.errors);
-  }
+  const filiais = filiaisData || [];
 
   return (
     <FormModal
@@ -260,7 +297,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="last_name"
@@ -274,7 +310,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="telemovel"
@@ -295,7 +330,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="cargo"
@@ -316,7 +350,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="bi"
@@ -330,7 +363,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="papel"
@@ -356,6 +388,49 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
+
+                {/* Campo Filial – comportamento por perfil */}
+                {podeEscolherFilial ? (
+                  <FormField
+                    control={form.control}
+                    name="filial"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Filial *</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a filial" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filiais.map((filial) => (
+                              <SelectItem key={filial.id} value={filial.id!}>
+                                {filial.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : isGestor && perfilAtual?.filial_detalhes ? (
+                  <div className="col-span-1 md:col-span-2 space-y-2">
+                    <Label>Filial</Label>
+                    <Input
+                      value={perfilAtual.filial_detalhes.nome}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <input
+                      type="hidden"
+                      {...form.register("filial")}
+                      value={perfilAtual.filial_detalhes.id}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           )}
@@ -364,28 +439,50 @@ export function FuncionarioForm({
           {etapaAtual === 2 && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="endereco.municipio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Município *</FormLabel>
-                      <FormControl>
-                        <AsyncFancySelect
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          endpoint="/organizacao/municipios"
-                          valueField="id"
-                          displayField="nome"
-                          placeholder="Selecione o município"
-                          searchable
-                          searchField="nome"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <AsyncFancySelect
+                    value={provincia}
+                    defaultValue={defaultValues?.endereco?.provincia_id || ""}
+                    onChange={(value) => setProvincia(value!)}
+                    endpoint="/organizacao/provincias"
+                    valueField="id"
+                    displayField="nome"
+                    placeholder="Selecione a província"
+                    searchable
+                    searchField="nome"
+                    label="Província"
+                  />
+                  <FormField
+                    control={form.control}
+                    name="endereco.municipio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Município *</FormLabel>
+                        <FormControl>
+                          <AsyncFancySelect
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            endpoint={
+                              provincia
+                                ? `/organizacao/municipios/?provincia=${provincia}`
+                                : "/organizacao/municipios"
+                            }
+                            defaultValue={
+                              defaultValues?.endereco?.municipio || ""
+                            }
+                            valueField="id"
+                            displayField="nome"
+                            placeholder="Selecione o município"
+                            searchable
+                            searchField="nome"
+                            disabled={!provincia}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="endereco.bairro"
@@ -399,7 +496,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="endereco.rua"
@@ -413,7 +509,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="endereco.ponto_referencia"
@@ -456,7 +551,6 @@ export function FuncionarioForm({
                     </FormItem>
                   )}
                 />
-
                 {!isEditMode && (
                   <>
                     <FormField
@@ -470,13 +564,13 @@ export function FuncionarioForm({
                               type="password"
                               placeholder="********"
                               {...field}
+                              value={field.value ?? ""}
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name="confirm_password"
@@ -488,6 +582,7 @@ export function FuncionarioForm({
                               type="password"
                               placeholder="********"
                               {...field}
+                              value={field.value ?? ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -497,7 +592,6 @@ export function FuncionarioForm({
                   </>
                 )}
               </div>
-
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
                 <div>
                   <Label className="font-medium">Conta ativa</Label>
@@ -532,7 +626,6 @@ export function FuncionarioForm({
             >
               <ChevronLeft size={16} /> Voltar
             </Button>
-
             {etapaAtual < totalEtapas ? (
               <Button type="button" onClick={avancarEtapa} className="gap-2">
                 Avançar <ChevronRight size={16} />
