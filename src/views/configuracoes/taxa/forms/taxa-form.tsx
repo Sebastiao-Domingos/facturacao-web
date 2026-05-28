@@ -31,16 +31,18 @@ interface TaxaFormProps {
 
 export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
   const { onSubmit, isLoading } = useFormTaxa({ defaultData: defaultValues });
-  const [ativo, setAtivo] = useState(false);
+  const [isIsencao, setIsIsencao] = useState(
+    !!defaultValues?.motivo_isencao || !!defaultValues?.codigo_isencao_agt,
+  );
 
   const form = useForm<Taxa>({
     resolver: zodResolver(TaxaSchema),
     defaultValues: {
       codigo: defaultValues?.codigo || "",
-      codigo_isencao_agt: defaultValues?.codigo_isencao_agt || undefined,
+      codigo_isencao_agt: defaultValues?.codigo_isencao_agt || "",
       descricao: defaultValues?.descricao || "",
-      valor: defaultValues?.valor || 0,
-      motivo_isencao: defaultValues?.motivo_isencao || undefined,
+      valor: defaultValues?.valor ?? 0,
+      motivo_isencao: defaultValues?.motivo_isencao || "",
     },
   });
 
@@ -48,22 +50,16 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
     <FormModal item="Taxa" onOpenChange={onOpenChange} open={open}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {/* Código */}
             <FormField
               control={form.control}
               name="codigo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Código da Taxa <span className="text-red-500">*</span>
-                  </FormLabel>
+                  <FormLabel>Código da Taxa *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="IVA_14"
-                      {...field}
-                      className="font-mono uppercase"
-                    />
+                    <Input placeholder="IVA_14" {...field} />
                   </FormControl>
                   <FormDescription>Ex: IVA_14, IRPS_10, ISENTO</FormDescription>
                   <FormMessage />
@@ -77,9 +73,7 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
               name="valor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Valor da Taxa (%) <span className="text-red-500">*</span>
-                  </FormLabel>
+                  <FormLabel>Valor da Taxa (%) *</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -90,8 +84,9 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
                         onChange={(e) =>
                           field.onChange(parseFloat(e.target.value) || 0)
                         }
+                        className="pr-8"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         %
                       </span>
                     </div>
@@ -108,13 +103,11 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
             name="descricao"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Descrição <span className="text-red-500">*</span>
-                </FormLabel>
+                <FormLabel>Descrição *</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Imposto sobre o Valor Acrescentado - Regime Geral"
-                    className="min-h-20"
+                    className="min-h-[80px]"
                     {...field}
                   />
                 </FormControl>
@@ -122,30 +115,31 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
               </FormItem>
             )}
           />
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
-            <div>
-              <Label className="font-medium">Isento da Taxa</Label>
-              <p className="text-sm text-red-800">
-                Seleciona apenas quando esta taxa for uma isenção ou redução
-                específica.
+
+          {/* Switch de Isenção */}
+          <div className="flex items-center justify-between rounded-lg border border-border p-4">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Taxa isenta?</Label>
+              <p className="text-sm text-muted-foreground">
+                Active apenas quando esta taxa representar uma isenção ou
+                redução específica (ex: 0%).
               </p>
             </div>
             <Switch
-              checked={ativo}
+              checked={isIsencao}
               onCheckedChange={(checked) => {
-                setAtivo(checked);
-
+                setIsIsencao(checked);
                 if (!checked) {
-                  form.setValue("motivo_isencao", undefined);
-                  form.setValue("codigo_isencao_agt", undefined);
+                  form.setValue("motivo_isencao", "");
+                  form.setValue("codigo_isencao_agt", "");
                 }
               }}
             />
           </div>
 
-          {ativo && (
-            <>
-              {/* Motivo de Isenção */}
+          {/* Campos condicionais (motivo e código AGT) */}
+          {isIsencao && (
+            <div className="space-y-5 rounded-lg border border-dashed border-border bg-muted/20 p-4">
               <FormField
                 control={form.control}
                 name="motivo_isencao"
@@ -168,25 +162,24 @@ export function TaxaForm({ defaultValues, onOpenChange, open }: TaxaFormProps) {
                 name="codigo_isencao_agt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Código de Isenção da AGT</FormLabel>
+                    <FormLabel>Código de Isenção (AGT)</FormLabel>
                     <FormControl>
-                      <Input placeholder="AGT-0000-07" {...field} />
+                      <Input placeholder="M02, M04, etc." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </>
+            </div>
           )}
 
           <Button
             type="submit"
-            size="lg"
-            className="w-full gap-2"
             disabled={isLoading}
+            className="w-full gap-2 sm:w-auto"
           >
-            <Save size={20} />
-            {isLoading ? "Guardando..." : "Guardar Taxa"}
+            <Save size={16} />
+            {isLoading ? "A guardar..." : "Guardar taxa"}
           </Button>
         </form>
       </Form>
@@ -201,13 +194,10 @@ function useFormTaxa({ defaultData }: { defaultData?: Taxa } = {}) {
 
   const onSubmit = (data: Taxa) => {
     if (defaultData) {
-      data.id = defaultData?.id;
-      updateMutation.mutateAsync({ data });
-
-      return;
+      updateMutation.mutateAsync({ data: { ...data, id: defaultData.id } });
+    } else {
+      createMutation.mutateAsync(data);
     }
-
-    createMutation.mutateAsync(data);
   };
 
   return { onSubmit, isLoading };

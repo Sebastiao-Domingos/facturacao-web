@@ -111,22 +111,21 @@ const columns: ColumnDef<Funcionario>[] = [
 ];
 
 export function FuncionariosPage() {
-  const { hasPermission } = usePermissions();
+  const { podeGerirUsuarios, isLoading: isLoadingPermissoes } =
+    usePermissions();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterFilial, setFilterFilial] = useState<string>("todas");
   const [filterPapel, setFilterPapel] = useState<string>("todos");
   const [filterAtivo, setFilterAtivo] = useState<string>("todos");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedFuncionario, setSelectedFuncionario] = useState<
-    Funcionario | undefined
-  >();
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [funcionarioToDelete, setFuncionarioToDelete] = useState<
     Funcionario | undefined
   >();
 
   const { data: funcionarios, isLoading, isError } = useFuncionarios();
-  const { toggleStatusMutation, deleteMutation } = useFuncionarioMutations();
+  const { deleteMutation } = useFuncionarioMutations();
   const { data: filiaisData, isLoading: isLoadingFiliais } = useAfilia();
   const filiais = filiaisData || [];
 
@@ -158,16 +157,8 @@ export function FuncionariosPage() {
     setDeleteModalOpen(true);
   };
 
-  const handleToggleStatus = (funcionario: Funcionario) => {
-    toggleStatusMutation.mutate({
-      id: funcionario.id,
-      ativo: !funcionario.ativo,
-    });
-  };
-
   const handleSuccess = () => {
     setModalOpen(false);
-    setSelectedFuncionario(undefined);
   };
 
   if (isError) {
@@ -187,10 +178,9 @@ export function FuncionariosPage() {
         Icon={<Users />}
         totalItens={funcionarios?.length || 0}
       >
-        {hasPermission("gerir_usuarios") && (
+        {podeGerirUsuarios() && (
           <Button
             onClick={() => {
-              setSelectedFuncionario(undefined);
               setModalOpen(true);
             }}
             disabled={isLoading || isLoadingFiliais}
@@ -258,7 +248,7 @@ export function FuncionariosPage() {
       </div>
 
       {/* Tabela */}
-      {isLoading || isLoadingFiliais ? (
+      {isLoading || isLoadingFiliais || isLoadingPermissoes ? (
         <div className="rounded-lg border border-border">
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -276,7 +266,7 @@ export function FuncionariosPage() {
           showCount={true}
           density="normal"
           emptyMessage="Nenhum funcionário encontrado."
-          actions={["delete", "view"]}
+          actions={podeGerirUsuarios() ? ["delete", "view"] : ["view"]}
           onDelete={handleDelete}
           onView={(row) =>
             (window.location.href = `/equipa/funcionarios/${row.id}`)

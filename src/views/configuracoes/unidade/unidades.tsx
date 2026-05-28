@@ -6,7 +6,6 @@ import {
   Edit2,
   Trash2,
   PackagePlus,
-  Scale,
   Layers2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,12 +22,12 @@ import {
   useUnidades,
 } from "@/src/hooks/configuracao/use-unidade";
 import { ErrorComponent } from "@/components/error-component";
-import { Loader } from "@/components/loader";
 import { useState } from "react";
 import { UnidadeForm } from "./forms/unidade-form";
 import { Unidade } from "@/src/schemas/configuracoes/unidade-schema";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function UnidadesPage() {
   const [defaultValues, setDefaultValues] = useState<Unidade | undefined>();
@@ -39,8 +38,10 @@ export function UnidadesPage() {
     id: "",
   });
   const { deleteMutation } = useUnidadeMutations();
+  const { podeGerirUnidades, isLoading: isLoadingPermissions } =
+    usePermissions();
 
-  if (isLoading) {
+  if (isLoading || isLoadingPermissions) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <div className="mb-6">
@@ -72,16 +73,18 @@ export function UnidadesPage() {
 
   return (
     <>
-      <div className="space-y-6 p-4 sm:p-6">
+      <div className="space-y-6">
         <HeaderPage
           title="Unidades de Medida"
           description="Configure as métricas de stock para os seus produtos e serviços."
           totalItens={unidades?.length}
         >
-          <Button onClick={() => setOpenModal(!openModal)}>
-            <PackagePlus size={16} className="mr-2" />
-            Nova Unidade
-          </Button>
+          {podeGerirUnidades() && (
+            <Button onClick={() => setOpenModal(!openModal)}>
+              <PackagePlus size={16} />
+              Nova
+            </Button>
+          )}
         </HeaderPage>
 
         {/* GRID DE CARDS */}
@@ -93,42 +96,45 @@ export function UnidadesPage() {
                 className="group relative rounded-lg border border-border bg-card p-6 transition-shadow hover:shadow-md"
               >
                 {/* Opções (Top Right) */}
-                <div className="absolute right-3 top-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                      >
-                        <MoreVertical size={16} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDefaultValues(unidade);
-                          setOpenModal(!openModal);
-                        }}
-                      >
-                        <Edit2 size={14} className="mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => {
-                          setOpenModalDelete({
-                            id: unidade?.id!,
-                            isopened: !openModalDelete.isopened,
-                          });
-                        }}
-                      >
-                        <Trash2 size={14} className="mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+
+                {podeGerirUnidades() && (
+                  <div className="absolute right-3 top-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                        >
+                          <MoreVertical size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setDefaultValues(unidade);
+                            setOpenModal(!openModal);
+                          }}
+                        >
+                          <Edit2 size={14} className="mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => {
+                            setOpenModalDelete({
+                              id: unidade?.id!,
+                              isopened: !openModalDelete.isopened,
+                            });
+                          }}
+                        >
+                          <Trash2 size={14} className="mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
                 {/* Conteúdo do Card */}
                 <div className="flex flex-col items-center justify-center space-y-4 pt-4">

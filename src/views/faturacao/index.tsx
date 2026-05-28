@@ -1,7 +1,7 @@
 // src/app/(dashboard)/facturacao/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Download, SquarePlus, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -21,7 +21,6 @@ import {
   useDocumentos,
   useDocumentoMutations,
 } from "@/src/hooks/empresa/use-documento";
-
 import { ErrorComponent } from "@/components/error-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
@@ -32,9 +31,10 @@ import {
 } from "@/src/schemas/empresa/faturacao/documento-schema";
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
 import { handleImprimir } from "@/src/helpers/print";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function DocumentosPage() {
-  // const pdfUrl = `/faturacao/documentos/${id}/pdf/`;
+  const { podeCriarDocumentos } = usePermissions();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
@@ -45,16 +45,25 @@ export function DocumentosPage() {
 
   const documentos = data?.results || [];
 
-  const filteredDocumentos = documentos.filter((doc) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      doc.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.cliente.nome.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTipo = filterTipo === "todos" || doc.tipo === filterTipo;
-    const matchesEstado =
-      filterEstado === "todos" || doc.estado === filterEstado;
-    return matchesSearch && matchesTipo && matchesEstado;
-  });
+  const filteredDocumentos = useMemo(() => {
+    if (!documentos.length) return [];
+
+    const searchLower = searchTerm.toLowerCase();
+
+    return documentos.filter((doc) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        doc.numero.toLowerCase().includes(searchLower) ||
+        (doc.cliente.nome &&
+          doc.cliente.nome.toLowerCase().includes(searchLower));
+
+      const matchesTipo = filterTipo === "todos" || doc.tipo === filterTipo;
+      const matchesEstado =
+        filterEstado === "todos" || doc.estado === filterEstado;
+
+      return matchesSearch && matchesTipo && matchesEstado;
+    });
+  }, [documentos, searchTerm, filterTipo, filterEstado]);
 
   const handleView = (doc: DocumentoList) => {
     router.push(`/faturacao/documentos/${doc.id}`);
@@ -70,6 +79,7 @@ export function DocumentosPage() {
       header: "Nº Documento",
       sortable: true,
       width: 150,
+      filterable: true,
       cell: (value) => (
         <span className="font-mono font-medium">{String(value)}</span>
       ),
@@ -79,12 +89,16 @@ export function DocumentosPage() {
       header: "Tipo",
       sortable: true,
       width: 120,
+      filterable: true,
     },
     {
       accessorKey: "cliente_nome",
       header: "Cliente",
       sortable: true,
       filterable: true,
+      cell: (value) => (
+        <span className="truncate max-w-[200px]">{String(value)}</span>
+      ),
     },
     {
       accessorKey: "total",
@@ -138,10 +152,12 @@ export function DocumentosPage() {
         title="Documentos Fiscais"
         description="Gerencie facturas, pro-formas, recibos e outros documentos fiscais."
       >
-        <Button onClick={() => router.push("/faturacao/nova")}>
-          <SquarePlus size={18} className="mr-2" />
-          Novo
-        </Button>
+        {podeCriarDocumentos() && (
+          <Button onClick={() => router.push("/faturacao/nova")}>
+            <SquarePlus size={16} className="mr-2" />
+            Novo
+          </Button>
+        )}
       </HeaderPage>
 
       {/* Filtros */}

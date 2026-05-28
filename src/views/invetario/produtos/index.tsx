@@ -12,6 +12,7 @@ import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { Button } from "@/components/ui/button";
 import { PackagePlus } from "lucide-react";
 import { redirect, usePathname } from "next/navigation";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 const columns: ColumnDef<Product>[] = [
   {
@@ -120,6 +121,8 @@ const columns: ColumnDef<Product>[] = [
 ];
 
 export function ProductsPage() {
+  const { podeGerirProdutos, isLoading: isLoadingPermissions } =
+    usePermissions();
   const pathname = usePathname();
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useProducts({ page });
@@ -140,15 +143,16 @@ export function ProductsPage() {
         title="Produtos"
         description="Gerencie os produtos do seu inventário"
       >
-        <Button
-          className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
-          onClick={() =>
-            setOpenModal({ isOpened: true, defaultValue: undefined })
-          }
-        >
-          <PackagePlus size={18} />
-          Nova
-        </Button>
+        {podeGerirProdutos() && (
+          <Button
+            onClick={() =>
+              setOpenModal({ isOpened: true, defaultValue: undefined })
+            }
+          >
+            <PackagePlus size={18} />
+            Nova
+          </Button>
+        )}
       </HeaderPage>
 
       {/* Tabela de Elite */}
@@ -156,10 +160,10 @@ export function ProductsPage() {
         data={data?.results || []} // A API devolve { results: [...] }
         columns={columns}
         caption="Produtos"
-        loading={isLoading}
+        loading={isLoading || isLoadingPermissions}
         defaultPageSize={10}
         pageSizeOptions={[10, 25, 50]}
-        actions={["view", "edit"]}
+        actions={podeGerirProdutos() ? ["edit", "view"] : ["view"]}
         onEdit={(row) => setOpenModal({ isOpened: true, defaultValue: row })}
         onView={(row) => redirect(`${pathname}/${row.id}`)}
         globalSearch

@@ -16,8 +16,60 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AfilialForm } from "./forms/afilia-form";
 import { AfiliasList } from "@/src/schemas/empresa/afilias/afilia-schema";
 import { toast } from "sonner";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
+const columns: ColumnDef<AfiliasList>[] = [
+  {
+    accessorKey: "nome",
+    header: "Nome",
+    sortable: true,
+    filterable: true,
+    cell: (value) => <span className="font-medium">{String(value)}</span>,
+  },
+  {
+    accessorKey: "codigo_agt",
+    header: "Código AGT",
+    sortable: true,
+  },
+  {
+    accessorKey: "e_sede",
+    header: "Sede",
+    width: 80,
+    cell: (value) => (value ? <Badge variant="default">Sede</Badge> : null),
+  },
+  {
+    accessorKey: "total_funcionarios",
+    header: "Funcionários",
+    sortable: true,
+    width: 100,
+    className: "text-center",
+  },
+  {
+    accessorKey: "ativo",
+    header: "Status",
+    sortable: true,
+    width: 100,
+    cell: (value) => (
+      <Badge
+        variant={value ? "default" : "secondary"}
+        className={value ? "bg-green-600" : ""}
+      >
+        {value ? "Ativo" : "Inativo"}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Criação",
+    sortable: true,
+    width: 120,
+    cell: (value) =>
+      format(new Date(String(value)), "dd/MM/yyyy", { locale: pt }),
+  },
+];
 export function FiliaisPage() {
+  const { podeGerirFiliais, isLoading: isLoadingPermissions } =
+    usePermissions();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [openModal, setOpenModal] = useState(false);
@@ -37,68 +89,6 @@ export function FiliaisPage() {
     setOpenModal(true);
   };
 
-  const handleDelete = (row: AfiliasList) => {
-    // Implementar soft delete (desativar)
-    console.log("Desativar filial", row.id);
-    toast.info("Funcionalidade em desenvolvimento");
-  };
-
-  const handleToggleStatus = (row: AfiliasList) => {
-    // Implementar ativação/desativação
-    console.log("Toggle status", row.id);
-    toast.info("Funcionalidade em desenvolvimento");
-  };
-
-  const columns: ColumnDef<AfiliasList>[] = [
-    {
-      accessorKey: "nome",
-      header: "Nome",
-      sortable: true,
-      filterable: true,
-      cell: (value) => <span className="font-medium">{String(value)}</span>,
-    },
-    {
-      accessorKey: "codigo_agt",
-      header: "Código AGT",
-      sortable: true,
-    },
-    {
-      accessorKey: "e_sede",
-      header: "Sede",
-      width: 80,
-      cell: (value) => (value ? <Badge variant="default">Sede</Badge> : null),
-    },
-    {
-      accessorKey: "total_funcionarios",
-      header: "Funcionários",
-      sortable: true,
-      width: 100,
-      className: "text-center",
-    },
-    {
-      accessorKey: "ativo",
-      header: "Status",
-      sortable: true,
-      width: 100,
-      cell: (value) => (
-        <Badge
-          variant={value ? "default" : "secondary"}
-          className={value ? "bg-green-600" : ""}
-        >
-          {value ? "Ativo" : "Inativo"}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "created_at",
-      header: "Criação",
-      sortable: true,
-      width: 120,
-      cell: (value) =>
-        format(new Date(String(value)), "dd/MM/yyyy", { locale: pt }),
-    },
-  ];
-
   if (isError) {
     return (
       <ErrorComponent
@@ -114,15 +104,17 @@ export function FiliaisPage() {
         title="Filiais & Pontos de Venda"
         description="Gerencie as localizações e séries de faturação da sua empresa."
       >
-        <Button
-          onClick={() => {
-            setSelectedFilial(null);
-            setOpenModal(true);
-          }}
-        >
-          <Plus size={16} className="mr-2" />
-          Nova Filial
-        </Button>
+        {podeGerirFiliais() && (
+          <Button
+            onClick={() => {
+              setSelectedFilial(null);
+              setOpenModal(true);
+            }}
+          >
+            <Plus size={16} />
+            Nova
+          </Button>
+        )}
       </HeaderPage>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -141,7 +133,7 @@ export function FiliaisPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoading || isLoadingPermissions ? (
         <div className="rounded-lg border border-border">
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -158,20 +150,9 @@ export function FiliaisPage() {
           showCount={true}
           density="compact"
           emptyMessage="Nenhuma filial encontrada."
-          actions={["view", "edit", "delete"]}
+          actions={podeGerirFiliais() ? ["view", "edit"] : ["view"]}
           onView={(row) => router.push(`/configuracoes/filiais/${row.id}`)}
           onEdit={handleEdit}
-          onDelete={handleDelete}
-          customActions={[
-            {
-              key: "toggle-status",
-              label: (row) => (row.ativo ? "Desativar" : "Ativar"),
-              icon: (row) =>
-                row.ativo ? <PowerOff size={14} /> : <Power size={14} />,
-              variant: (row) => (row.ativo ? "warning" : "success"),
-              onClick: handleToggleStatus,
-            },
-          ]}
         />
       )}
 

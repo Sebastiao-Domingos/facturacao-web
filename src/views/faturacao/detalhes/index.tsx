@@ -34,6 +34,7 @@ import {
 import { formatarMoeda } from "@/src/schemas/dashboard/dashboard-schema";
 import { ModalPagamento } from "../components/ModalPagamento";
 import { ConfirmModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 // Helper para impressão (substitui o import se não existir)
 const handleImprimir = ({ pdfUrl }: { pdfUrl: string }) => {
@@ -44,6 +45,11 @@ const handleImprimir = ({ pdfUrl }: { pdfUrl: string }) => {
 };
 
 export function DocumentoDetailPage() {
+  const {
+    podeAnularDocumentos,
+    podeEmitirDocumentos,
+    podeRegistrarPagamentos,
+  } = usePermissions();
   const { documento: id } = useParams();
   const router = useRouter();
   const [pagamentoModalOpen, setPagamentoModalOpen] = useState(false);
@@ -109,16 +115,16 @@ export function DocumentoDetailPage() {
     );
   }
 
-  const podeEmitir = documento.estado === "RASCUNHO";
+  const podeEmitir = documento.estado === "RASCUNHO" && podeEmitirDocumentos();
   const podeAnular =
-    documento.estado !== "ANULADA" && documento.estado !== "PAGA";
+    documento.estado !== "ANULADA" &&
+    documento.estado !== "PAGA" &&
+    podeAnularDocumentos();
   const podeRegistrarPagamento =
-    documento.estado === "EMITIDA" || documento.estado === "PARCIALMENTE_PAGA";
+    (documento.estado === "EMITIDA" ||
+      documento.estado === "PARCIALMENTE_PAGA") &&
+    podeRegistrarPagamentos();
   const estaPaga = documento.estado === "PAGA";
-
-  // URL base para o PDF (backend)
-  const apiBaseUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8888/api/v1";
 
   return (
     <div className="space-y-6">

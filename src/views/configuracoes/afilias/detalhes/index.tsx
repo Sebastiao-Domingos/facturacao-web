@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/src/components/shared/confirm-delete-modal";
 import { useFilial } from "@/src/hooks/empresa/afilia/use-afilia";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 // Hook useFilial (deve ser criado)
 // Exemplo: queryFn: () => api.get(`/organizacao/filiais/${id}/?include_funcionarios=true&include_stocks=true`)
@@ -55,6 +56,8 @@ export function FilialDetailPage() {
   const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const { podeGerirFiliais, isLoading: isLoadingPermissions } =
+    usePermissions();
 
   // Hook que busca a filial com detalhes (inclui funcionários e stocks)
   const { data: filial, isLoading, isError, refetch } = useFilial(id as string);
@@ -79,7 +82,7 @@ export function FilialDetailPage() {
     refetch();
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingPermissions) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <div className="flex items-center gap-4">
@@ -144,26 +147,30 @@ export function FilialDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setEditModalOpen(true)}>
-            <Edit size={16} className="mr-2" />
-            Editar
-          </Button>
-          <Button
-            variant={filial.ativo ? "destructive" : "default"}
-            onClick={handleToggleStatus}
-          >
-            {filial.ativo ? (
-              <>
-                <PowerOff size={16} className="mr-2" />
-                Desativar
-              </>
-            ) : (
-              <>
-                <Power size={16} className="mr-2" />
-                Ativar
-              </>
-            )}
-          </Button>
+          {podeGerirFiliais() && (
+            <>
+              <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+                <Edit size={16} className="mr-2" />
+                Editar
+              </Button>
+              <Button
+                variant={filial.ativo ? "destructive" : "default"}
+                onClick={handleToggleStatus}
+              >
+                {filial.ativo ? (
+                  <>
+                    <PowerOff size={16} className="mr-2" />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <Power size={16} className="mr-2" />
+                    Ativar
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

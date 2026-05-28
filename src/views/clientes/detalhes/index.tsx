@@ -42,7 +42,8 @@ export function ClienteDetailPage() {
   const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const { hasPermission } = usePermissions();
+  const { podeGerirClientes, isLoading: isLoadingPermissions } =
+    usePermissions();
 
   const { data: cliente, isLoading, isError } = useCliente(id as string);
   const { toggleStatusMutation, deleteMutation } = useClienteMutations();
@@ -61,7 +62,7 @@ export function ClienteDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingPermissions) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <div className="flex items-center gap-4">
@@ -110,7 +111,7 @@ export function ClienteDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          {hasPermission("gerir_clientes") && (
+          {podeGerirClientes() && (
             <>
               <Button variant="outline" onClick={() => setEditModalOpen(true)}>
                 <Edit size={16} className="mr-2" />

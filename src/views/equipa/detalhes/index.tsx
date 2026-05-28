@@ -51,7 +51,8 @@ const papeis: Record<string, string> = {
 };
 
 export function FuncionarioDetailPage() {
-  const { hasPermission } = usePermissions();
+  const { podeGerirUsuarios, isLoading: isLoadingPermissions } =
+    usePermissions();
   const { funcionario: id } = useParams();
   const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -158,30 +159,30 @@ export function FuncionarioDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          {hasPermission("gerir_usuarios") && (
-            <Button variant="outline" onClick={() => setEditModalOpen(true)}>
-              <Edit size={16} className="mr-2" />
-              Editar
-            </Button>
-          )}
-          {hasPermission("gerir_usuarios") && (
-            <Button
-              variant={funcionario.ativo ? "destructive" : "default"}
-              onClick={handleToggleStatus}
-              disabled={toggleStatusMutation.isPending}
-            >
-              {funcionario.ativo ? (
-                <>
-                  <PowerOff size={16} className="mr-2" />
-                  Desativar
-                </>
-              ) : (
-                <>
-                  <Power size={16} className="mr-2" />
-                  Ativar
-                </>
-              )}
-            </Button>
+          {podeGerirUsuarios() && (
+            <>
+              <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+                <Edit size={16} className="mr-2" />
+                Editar
+              </Button>
+              <Button
+                variant={funcionario.ativo ? "destructive" : "default"}
+                onClick={handleToggleStatus}
+                disabled={toggleStatusMutation.isPending}
+              >
+                {funcionario.ativo ? (
+                  <>
+                    <PowerOff size={16} className="mr-2" />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <Power size={16} className="mr-2" />
+                    Ativar
+                  </>
+                )}
+              </Button>
+            </>
           )}
         </div>
       </div>

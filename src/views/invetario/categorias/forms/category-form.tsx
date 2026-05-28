@@ -1,7 +1,7 @@
 // src/components/inventory/category-form.tsx
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -38,8 +38,9 @@ export function CategoryForm({
   initialData,
   isOpen,
   onOpenChange,
+  onSuccess,
 }: CategoriaFormProps) {
-  const { onSubmit, isLoading } = useFormCategory(initialData);
+  const { onSubmit, isLoading } = useFormCategory(initialData, onSuccess);
 
   const form = useForm<Categoria>({
     resolver: zodResolver(CategoriaDetalhesSchema),
@@ -47,11 +48,10 @@ export function CategoryForm({
       nome: initialData?.nome || "",
       descricao: initialData?.descricao || "",
     },
-    mode: "onChange", // Validação em tempo real
-    reValidateMode: "onChange",
+    mode: "onChange",
   });
 
-  // Sincroniza o formulário quando o modal abre ou os dados mudam
+  // Reset do formulário quando abre/fecha
   useEffect(() => {
     if (isOpen) {
       if (initialData?.id) {
@@ -62,41 +62,32 @@ export function CategoryForm({
       } else {
         form.reset({ nome: "", descricao: "" });
       }
-      // Limpa erros do formulário ao abrir
       form.clearErrors();
     }
   }, [initialData, isOpen, form]);
-
-  // Função para validar em tempo real se o nome já contém apenas espaço
 
   return (
     <FormModal
       item="Categoria"
       open={isOpen}
       onOpenChange={onOpenChange}
-      edit={initialData ? true : false}
+      edit={!!initialData?.id}
     >
       <Form {...form}>
         <form
-          id="category-form"
           onSubmit={form.handleSubmit(onSubmit, (errors) => {
-            // Log de validação falha (opcional para debugging)
             console.log("Erros de validação:", errors);
-            // Rolar para o primeiro erro
             const firstError = Object.keys(errors)[0];
             if (firstError) {
               const element = document.querySelector(`[name="${firstError}"]`);
-              element?.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
+              element?.scrollIntoView({ behavior: "smooth", block: "center" });
             }
           })}
-          className="space-y-6 pt-4"
+          className="space-y-5"
         >
-          {/* Erro raiz (API) */}
+          {/* Erro geral da API */}
           {form.formState.errors.root && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <AlertDescription>
                 {form.formState.errors.root.message}
               </AlertDescription>
@@ -109,62 +100,26 @@ export function CategoryForm({
             name="nome"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel
-                  className={cn(
-                    "font-bold transition-colors flex items-center gap-2",
-                    fieldState.error && "text-destructive",
-                  )}
-                >
-                  Nome da Categoria
-                  <span className="text-xs text-muted-foreground font-normal">
-                    (obrigatório)
-                  </span>
+                <FormLabel>
+                  Nome da categoria <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Ex: Eletrónicos, Higiene..."
+                    placeholder="Ex: Eletrónicos, Higiene, Vestuário"
                     {...field}
-                    onChange={(e) => {
-                      // Impede caracteres especiais no início (opcional)
-                      const value = e.target.value;
-                      // Permite apenas letras, números, espaços e alguns caracteres
-                      if (
-                        (value.length > 0 &&
-                          /^[a-zA-Z0-9áéíóúâêôçãõÀÉÍÓÚÂÊÔÇÃÕ\s\-]+$/.test(
-                            value,
-                          )) ||
-                        value === ""
-                      ) {
-                        field.onChange(value);
-                      } else if (value === "") {
-                        field.onChange(value);
-                      }
-                    }}
                     maxLength={50}
                     className={cn(
-                      "h-12 transition-all border-2 font-medium",
-                      fieldState.error
-                        ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive"
-                        : "border-border/60 focus-visible:ring-primary focus-visible:border-primary",
-                      !fieldState.error &&
-                        fieldState.isDirty &&
-                        !fieldState.invalid &&
-                        "border-green-500/50",
+                      "transition-all",
+                      fieldState.error && "border-destructive",
                     )}
-                    aria-invalid={fieldState.invalid}
-                    aria-describedby={
-                      fieldState.error ? "nome-error" : undefined
-                    }
                   />
                 </FormControl>
-                <div className="flex justify-between items-center">
-                  <FormMessage className="text-[10px] font-extrabold uppercase tracking-widest italic" />
-                  {field.value && field.value.length > 0 && (
-                    <span className="text-[10px] text-muted-foreground">
-                      {field.value.length}/50
-                    </span>
-                  )}
-                </div>
+                {field.value && (
+                  <div className="flex justify-end text-xs text-muted-foreground">
+                    {field.value.length}/50
+                  </div>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -175,79 +130,49 @@ export function CategoryForm({
             name="descricao"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel
-                  className={cn(
-                    "font-bold transition-colors",
-                    fieldState.error && "text-destructive",
-                  )}
-                >
-                  Descrição
-                  <span className="text-xs text-muted-foreground font-normal ml-2">
-                    (opcional)
-                  </span>
-                </FormLabel>
+                <FormLabel>Descrição (opcional)</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Breve descrição sobre a categoria..."
+                    placeholder="Breve descrição sobre a categoria"
                     {...field}
-                    value={field.value}
                     maxLength={200}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                    }}
                     className={cn(
-                      "h-12 transition-all border-2 font-medium",
-                      fieldState.error
-                        ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive"
-                        : "border-border/60 focus-visible:ring-primary focus-visible:border-primary",
+                      "transition-all",
+                      fieldState.error && "border-destructive",
                     )}
                   />
                 </FormControl>
-                <div className="flex justify-between items-center">
-                  <FormMessage className="text-[10px] font-extrabold uppercase tracking-widest italic" />
-                  {field.value && field.value.length > 0 && (
-                    <span className="text-[10px] text-muted-foreground">
-                      {field.value.length}/200
-                    </span>
-                  )}
-                </div>
+                {field.value && (
+                  <div className="flex justify-end text-xs text-muted-foreground">
+                    {field.value.length}/200
+                  </div>
+                )}
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Indicador de campos obrigatórios */}
-          <div className="text-xs text-muted-foreground text-center">
-            * Campos marcados são obrigatórios
-          </div>
+          <p className="text-xs text-muted-foreground">* Campo obrigatório</p>
 
-          <DialogFooter className="mt-8 gap-3">
+          <DialogFooter className="gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-12 font-semibold"
               disabled={isLoading}
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              form="category-form"
-              className={cn(
-                "h-14 font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 flex-1",
-                !isLoading && "shadow-primary/40 hover:bg-primary/90",
-              )}
-              disabled={isLoading}
-            >
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />A
-                  Processar...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />A
+                  processar...
                 </>
               ) : initialData ? (
-                "Atualizar Categoria"
+                "Actualizar"
               ) : (
-                "Registar Categoria"
+                "Criar categoria"
               )}
             </Button>
           </DialogFooter>
@@ -257,7 +182,10 @@ export function CategoryForm({
   );
 }
 
-export function useFormCategory(defaulValues?: Categoria) {
+export function useFormCategory(
+  defaultValues?: Categoria,
+  onSuccess?: () => void,
+) {
   const { createMutation, updateMutation, deleteMutation } =
     useCategoryMutations();
 
@@ -267,17 +195,18 @@ export function useFormCategory(defaulValues?: Categoria) {
     deleteMutation.isPending;
 
   async function onSubmit(data: Categoria) {
-    if (defaulValues) {
-      updateMutation.mutateAsync({ data: { ...data, id: defaulValues.id } });
-
-      return;
+    if (defaultValues?.id) {
+      await updateMutation.mutateAsync({
+        data: { ...data, id: defaultValues.id },
+      });
+    } else {
+      await createMutation.mutateAsync(data);
     }
-
-    createMutation.mutateAsync(data);
+    onSuccess?.();
   }
 
   async function onSubmitDelete(id: string) {
-    deleteMutation.mutateAsync(id);
+    await deleteMutation.mutateAsync(id);
   }
 
   return { isLoading, onSubmit, onSubmitDelete };

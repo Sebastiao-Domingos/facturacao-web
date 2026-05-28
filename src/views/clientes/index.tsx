@@ -2,15 +2,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Eye, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { HeaderPage } from "@/components/header-page";
-import {
-  useClientes,
-  useClienteMutations,
-} from "@/src/hooks/empresa/use-clientes";
+import { useClientes } from "@/src/hooks/empresa/use-clientes";
 import { ErrorComponent } from "@/components/error-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,7 +22,6 @@ import { useRouter } from "next/navigation";
 import { ClienteList } from "@/src/schemas/empresa/clientes/cliente-schema";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { ClienteForm } from "./forms/cliente-form";
-import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
 import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function ClientesPage() {
@@ -40,7 +36,8 @@ export function ClientesPage() {
     ClienteList | undefined
   >();
 
-  const { hasPermission } = usePermissions();
+  const { podeGerirClientes, isLoading: isLoadingPermissoes } =
+    usePermissions();
 
   const { data, isLoading, isError } = useClientes({
     search: searchTerm || undefined,
@@ -49,16 +46,6 @@ export function ClientesPage() {
   });
 
   const clientes = data?.results || [];
-
-  const handleEdit = (cliente: ClienteList) => {
-    setSelectedCliente(cliente);
-    setModalOpen(true);
-  };
-
-  const handleDelete = (cliente: ClienteList) => {
-    setClienteToDelete(cliente);
-    setDeleteModalOpen(true);
-  };
 
   const handleSuccess = () => {
     setModalOpen(false);
@@ -122,14 +109,14 @@ export function ClientesPage() {
         title="Clientes"
         description="Gerencie os clientes da sua empresa, incluindo particulares e empresas."
       >
-        {hasPermission("gerir_clientes") && (
+        {podeGerirClientes() && (
           <Button
             onClick={() => {
               setSelectedCliente(undefined);
               setModalOpen(true);
             }}
           >
-            <Plus size={16} className="mr-2" />
+            <Plus size={16} />
             Novo
           </Button>
         )}
@@ -173,7 +160,7 @@ export function ClientesPage() {
       </div>
 
       {/* Tabela */}
-      {isLoading ? (
+      {isLoading || isLoadingPermissoes ? (
         <div className="rounded-lg border border-border">
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -193,8 +180,6 @@ export function ClientesPage() {
           emptyMessage="Nenhum cliente encontrado."
           actions={["view"]}
           onView={(row) => router.push(`/equipa/clientes/${row.id}`)}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       )}
 
@@ -204,21 +189,6 @@ export function ClientesPage() {
         onOpenChange={setModalOpen}
         defaultValues={selectedCliente}
         onSuccess={handleSuccess}
-      />
-
-      {/* Modal de Confirmação de Eliminação */}
-      <ConfirmDeleteModal
-        isOpen={deleteModalOpen}
-        onOpenChange={setDeleteModalOpen}
-        onConfirm={() => {
-          if (clienteToDelete) {
-            handleDelete(clienteToDelete);
-            setDeleteModalOpen(false);
-          }
-        }}
-        itemName={clienteToDelete?.nome}
-        title="Eliminar Cliente"
-        description="Esta ação não pode ser desfeita. O cliente será removido permanentemente do sistema."
       />
     </div>
   );
