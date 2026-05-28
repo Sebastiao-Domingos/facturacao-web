@@ -1,4 +1,8 @@
-import { Empresa } from "@/src/schemas/empresa/empresa-schema";
+import {
+  Empresa,
+  EmpresaSchema,
+  EmpresaUpdate,
+} from "@/src/schemas/empresa/empresa-schema";
 import { api } from "../api";
 
 export class EmpresaService {
@@ -9,7 +13,14 @@ export class EmpresaService {
   }
 
   async update(data: Empresa): Promise<Empresa> {
-    const response = await api.put<Empresa>(this.endpoint, data);
+    const response = await api.patch(`/organizacao/empresas/${data.id}/`, data);
+    return EmpresaSchema.parse(response.data);
+  }
+
+  async getMinhaEmpresa(): Promise<Empresa> {
+    const response = await api.get("/organizacao/empresas/me/");
     return response.data;
   }
 }
+
+// src/services/empresa/empresa-service.ts
