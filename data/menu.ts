@@ -152,8 +152,8 @@ export const data: { navMain: NavItem[] } = {
           icon: Home,
         },
         {
-          title: "Utilizadores",
-          url: "/utilizadores",
+          title: "Usuários",
+          url: "/usuarios",
           icon: Users,
         },
         {
