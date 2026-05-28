@@ -1,5 +1,5 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/src/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,15 +7,7 @@ import { AuthProvider } from "@/src/providers/auth-provider";
 import { ThemeProvider } from "@/src/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Remova as importações do Geist
 
 export const metadata: Metadata = {
   title: "Sistema de Faturação",
@@ -29,17 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="pt"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="pt" className="h-full antialiased" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col font-sans">
         <QueryProvider>
           <ThemeProvider>
             <AuthProvider>
               <TooltipProvider>
-                {" "}
                 {children}
                 <Toaster richColors position="top-right" />
               </TooltipProvider>

@@ -1,27 +1,29 @@
-import {
-  Funcionario,
-  FuncionarioCreate,
-} from "@/src/schemas/empresa/afilias/funcionario-schema";
+import { FuncionarioList } from "@/src/schemas/empresa/funcionarios/funcionario-schema";
 import { api } from "../api";
 import { PaginatedResponse } from "@/src/types";
+import {
+  FuncionarioCreate,
+  FuncionarioResponse,
+  FuncionarioUpdate,
+} from "@/src/schemas/empresa/afilias/funcionario-schema";
 
 export class FuncionarioService {
   readonly endpoint = "/organizacao/funcionarios";
 
-  async get(): Promise<PaginatedResponse<Funcionario>> {
-    const response = await api.get<PaginatedResponse<Funcionario>>(
+  async get(): Promise<PaginatedResponse<FuncionarioList>> {
+    const response = await api.get<PaginatedResponse<FuncionarioList>>(
       this.endpoint,
     );
     return response.data;
   }
 
-  async create(data: Funcionario): Promise<Funcionario> {
-    const response = await api.post<Funcionario>(this.endpoint, data);
+  async create(data: FuncionarioCreate): Promise<FuncionarioResponse> {
+    const response = await api.post<FuncionarioResponse>(this.endpoint, data);
     return response.data;
   }
 
-  async update(data: Funcionario): Promise<Funcionario> {
-    const response = await api.put<Funcionario>(
+  async update(data: FuncionarioUpdate): Promise<FuncionarioResponse> {
+    const response = await api.put<FuncionarioResponse>(
       `${this.endpoint}/${data.id}`,
       data,
     );
