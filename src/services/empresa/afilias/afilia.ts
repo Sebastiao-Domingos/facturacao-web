@@ -1,11 +1,22 @@
-import { Afilias } from "@/src/schemas/empresa/afilias/afilia-schema";
+import {
+  Afilias,
+  AfiliasDetalhes,
+  AfiliasList,
+} from "@/src/schemas/empresa/afilias/afilia-schema";
 import { api } from "../../api";
 
 export class AfiliaService {
   readonly endpoint = "/organizacao/filiais/";
 
-  async get(): Promise<Afilias[]> {
-    const response = await api.get<Afilias[]>(this.endpoint);
+  async get(): Promise<AfiliasList[]> {
+    const response = await api.get<AfiliasList[]>(this.endpoint);
+    return response.data;
+  }
+
+  async getById(id: string): Promise<AfiliasDetalhes> {
+    const response = await api.get<AfiliasDetalhes>(
+      `${this.endpoint}${id}/?include_funcionarios=true&include_stocks=true`,
+    );
     return response.data;
   }
 

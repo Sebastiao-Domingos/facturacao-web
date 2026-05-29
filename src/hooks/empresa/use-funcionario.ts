@@ -4,6 +4,10 @@ import { api } from "@/src/services/api";
 import { toast } from "sonner";
 import { FuncionarioFormData } from "@/src/schemas/empresa/afilias/funcionario-schema";
 import { z } from "zod";
+import { AfiliasSchema } from "@/src/schemas/empresa/afilias/afilia-schema";
+import Cookies from "js-cookie";
+import { EnderecoSchema } from "@/src/schemas/localidade/municipio-schema";
+import { FuncionarioResponse } from "@/src/schemas/empresa/funcionarios/funcionario-schema";
 
 // Schema para resposta da API
 const FuncionarioResponseSchema = z.object({
@@ -16,6 +20,8 @@ const FuncionarioResponseSchema = z.object({
   ativo: z.boolean(),
   telemovel: z.string(),
   filial_nome: z.string(),
+  filial_detalhes: AfiliasSchema.optional(),
+  endereco: EnderecoSchema.optional(),
   created_at: z.string().datetime(),
 });
 
@@ -31,7 +37,8 @@ const toFormData = (data: FuncionarioFormData): FormData => {
   formData.append("telemovel", data.telemovel);
   formData.append("papel", data.papel);
   formData.append("ativo", String(data.ativo));
-  formData.append("filial", data.filial);
+  formData.append("filial_id", data.filial!);
+  formData.append("filial", data.filial!);
 
   if (data.password) {
     formData.append("password", data.password);
@@ -50,10 +57,9 @@ export const useFuncionarioMutations = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: FuncionarioFormData) => {
-      const formData = toFormData(data);
-      const response = await api.post("/organizacao/funcionarios/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // const formData = toFormData(data);
+      console.log("Datos do funcionario: ", data);
+      const response = await api.post("/organizacao/funcionarios/", data);
       return response.data;
     },
     onSuccess: () => {
@@ -75,20 +81,7 @@ export const useFuncionarioMutations = () => {
       id: string;
       data: Partial<FuncionarioFormData>;
     }) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          if (key === "endereco" && value) {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-      const response = await api.patch(
-        `/organizacao/funcionarios/${id}/`,
-        formData,
-      );
+      const response = await api.put(`/organizacao/funcionarios/${id}/`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -114,9 +107,16 @@ export const useFuncionarioMutations = () => {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
-      const response = await api.patch(`/organizacao/funcionarios/${id}/`, {
-        ativo,
-      });
+      if (ativo) {
+        const response = await api.post(
+          `/organizacao/funcionarios/${id}/ativar/`,
+        );
+        return response.data;
+      }
+
+      const response = await api.post(
+        `/organizacao/funcionarios/${id}/desativar/`,
+      );
       return response.data;
     },
     onSuccess: (_, variables) => {
@@ -167,20 +167,26 @@ export const useFuncionario = (id: string) => {
   return useQuery({
     queryKey: ["funcionarios", id],
     queryFn: async () => {
-      const response = await api.get(`/organizacao/funcionarios/${id}/`);
-      return FuncionarioResponseSchema.parse(response.data);
+      const response = await api.get<FuncionarioResponse>(
+        `/organizacao/funcionarios/${id}/`,
+      );
+      return response.data;
     },
     enabled: !!id,
   });
 };
 
-// Hook para buscar funcionário atual (logado)
 export const useFuncionarioAtual = () => {
+  const token = typeof window !== "undefined" ? Cookies.get("token") : null;
   return useQuery({
-    queryKey: ["funcionarios", "me"],
+    queryKey: ["funcionario", "me"],
     queryFn: async () => {
-      const response = await api.get("/organizacao/funcionarios/me/");
-      return FuncionarioResponseSchema.parse(response.data);
+      const response = await api.get<FuncionarioResponse>(
+        "/organizacao/funcionarios/me/",
+      );
+      return response.data;
     },
+    enabled: !!token, // ✅ só executa se houver token
+    staleTime: 0, // ✅ não mantém dados antigos
   });
 };

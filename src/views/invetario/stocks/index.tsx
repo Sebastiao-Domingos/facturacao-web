@@ -39,6 +39,7 @@ import { TabelaHistoricoStock } from "./components/TabelaHistoricoStock";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 type VisualizacaoType = "tabela" | "cards";
 
@@ -152,12 +153,13 @@ const columns: ColumnDef<Stock>[] = [
   },
 ];
 
-export function StockPage() {
+export function StocksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [historicoOpen, setHistoricoOpen] = useState(false);
   const [visualizacao, setVisualizacao] = useState<VisualizacaoType>("tabela");
+  const { podeGerirStock } = usePermissions();
 
   const { data: stocksData, isLoading, isError } = useStocks();
   const stocks = stocksData?.results || [];
@@ -273,14 +275,16 @@ export function StockPage() {
                   <Eye size={14} />
                   Histórico
                 </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 gap-1 bg-emerald-600 hover:bg-emerald-700"
-                  onClick={() => handleMovimentar(stock)}
-                >
-                  <TrendingUp size={14} />
-                  Movimentar
-                </Button>
+                {podeGerirStock() && (
+                  <Button
+                    size="sm"
+                    className="flex-1 gap-1 bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() => handleMovimentar(stock)}
+                  >
+                    <TrendingUp size={14} />
+                    Movimentar
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -301,16 +305,20 @@ export function StockPage() {
       density="compact"
       emptyMessage="Nenhum stock encontrado."
       actions={["view"]}
-      onView={(row) => handleVerHistorico(row)}
-      customActions={[
-        {
-          key: "movimentar",
-          label: "Movimentar",
-          icon: <TrendingUp size={14} />,
-          variant: "default",
-          onClick: handleMovimentar,
-        },
-      ]}
+      onView={(row) => (window.location.href = `/invetario/stocks/${row.id}`)}
+      customActions={
+        podeGerirStock()
+          ? [
+              {
+                key: "movimentar",
+                label: "Movimentar",
+                icon: <TrendingUp size={14} />,
+                variant: "default",
+                onClick: handleMovimentar,
+              },
+            ]
+          : []
+      }
     />
   );
 

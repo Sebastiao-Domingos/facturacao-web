@@ -2,15 +2,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Eye, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { HeaderPage } from "@/components/header-page";
-import {
-  useClientes,
-  useClienteMutations,
-} from "@/src/hooks/empresa/use-clientes";
+import { useClientes } from "@/src/hooks/empresa/use-clientes";
 import { ErrorComponent } from "@/components/error-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { ClienteList } from "@/src/schemas/empresa/clientes/cliente-schema";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { ClienteForm } from "./forms/cliente-form";
-import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function ClientesPage() {
   const router = useRouter();
@@ -39,33 +36,16 @@ export function ClientesPage() {
     ClienteList | undefined
   >();
 
+  const { podeGerirClientes, isLoading: isLoadingPermissoes } =
+    usePermissions();
+
   const { data, isLoading, isError } = useClientes({
     search: searchTerm || undefined,
     tipo: filterTipo !== "todos" ? (filterTipo as "P" | "E") : undefined,
     ativo: filterAtivo !== "todos" ? filterAtivo === "ativo" : undefined,
   });
 
-  const { toggleStatusMutation } = useClienteMutations();
-
   const clientes = data?.results || [];
-
-  const handleEdit = (cliente: ClienteList) => {
-    setSelectedCliente(cliente);
-    setModalOpen(true);
-  };
-
-  const handleDelete = (cliente: ClienteList) => {
-    setClienteToDelete(cliente);
-    setDeleteModalOpen(true);
-  };
-
-  const handleToggleStatus = (cliente: ClienteList) => {
-    toggleStatusMutation.mutate({ id: cliente.id, ativo: !cliente.ativo });
-  };
-
-  const handleViewDetails = (cliente: ClienteList) => {
-    router.push(`/clientes/${cliente.id}`);
-  };
 
   const handleSuccess = () => {
     setModalOpen(false);
@@ -84,7 +64,6 @@ export function ClientesPage() {
       accessorKey: "tipo_display",
       header: "Tipo",
       sortable: true,
-      width: 120,
     },
     {
       accessorKey: "nif",
@@ -125,20 +104,22 @@ export function ClientesPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <HeaderPage
         title="Clientes"
         description="Gerencie os clientes da sua empresa, incluindo particulares e empresas."
       >
-        <Button
-          onClick={() => {
-            setSelectedCliente(undefined);
-            setModalOpen(true);
-          }}
-        >
-          <Plus size={16} className="mr-2" />
-          Novo
-        </Button>
+        {podeGerirClientes() && (
+          <Button
+            onClick={() => {
+              setSelectedCliente(undefined);
+              setModalOpen(true);
+            }}
+          >
+            <Plus size={16} />
+            Novo
+          </Button>
+        )}
       </HeaderPage>
 
       {/* Filtros */}
@@ -155,7 +136,7 @@ export function ClientesPage() {
 
         <div className="flex gap-3">
           <Select value={filterTipo} onValueChange={setFilterTipo}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-37.5">
               <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +147,7 @@ export function ClientesPage() {
           </Select>
 
           <Select value={filterAtivo} onValueChange={setFilterAtivo}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-32.5">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -179,7 +160,7 @@ export function ClientesPage() {
       </div>
 
       {/* Tabela */}
-      {isLoading ? (
+      {isLoading || isLoadingPermissoes ? (
         <div className="rounded-lg border border-border">
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -197,18 +178,8 @@ export function ClientesPage() {
           showCount={true}
           density="normal"
           emptyMessage="Nenhum cliente encontrado."
-          actions={["edit", "delete"]}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          customActions={[
-            {
-              key: "view-details",
-              label: "Ver Detalhes",
-              icon: <Eye size={14} />,
-              variant: "default",
-              onClick: handleViewDetails,
-            },
-          ]}
+          actions={["view"]}
+          onView={(row) => router.push(`/equipa/clientes/${row.id}`)}
         />
       )}
 
@@ -218,21 +189,6 @@ export function ClientesPage() {
         onOpenChange={setModalOpen}
         defaultValues={selectedCliente}
         onSuccess={handleSuccess}
-      />
-
-      {/* Modal de Confirmação de Eliminação */}
-      <ConfirmDeleteModal
-        isOpen={deleteModalOpen}
-        onOpenChange={setDeleteModalOpen}
-        onConfirm={() => {
-          if (clienteToDelete) {
-            handleDelete(clienteToDelete);
-            setDeleteModalOpen(false);
-          }
-        }}
-        itemName={clienteToDelete?.nome}
-        title="Eliminar Cliente"
-        description="Esta ação não pode ser desfeita. O cliente será removido permanentemente do sistema."
       />
     </div>
   );

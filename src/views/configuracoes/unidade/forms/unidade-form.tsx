@@ -1,4 +1,4 @@
-// src/components/forms/taxa-form.tsx
+// src/components/forms/unidade-form.tsx
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -48,57 +48,49 @@ export function UnidadeForm({
   return (
     <FormModal item="Unidade" onOpenChange={onOpenChange} open={open}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-            {/* Código */}
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Nome <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Caixa, Litro, Metro , ...."
-                      {...field}
-                      className="font-mono uppercase"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="nome"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Nome <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ex: Quilograma, Litro, Metro, Caixa"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            {/* Valor (%) */}
-            <FormField
-              control={form.control}
-              name="sigla"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Sigla (Kg, CX, Un, ...){" "}
-                    <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input placeholder="Kg, m, l, CX" {...field} />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="sigla"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Sigla <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder="kg, L, m, cx" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <Button
             type="submit"
-            size="lg"
-            className="w-full gap-2"
             disabled={isLoading}
+            className="w-full gap-2 sm:w-auto"
           >
-            <Save size={20} />
-            {isLoading ? "Guardando..." : "Guardar"}
+            <Save size={16} />
+            {isLoading ? "A guardar..." : "Guardar unidade"}
           </Button>
         </form>
       </Form>
@@ -113,13 +105,10 @@ function useFormUnidade({ defaultData }: { defaultData?: Unidade } = {}) {
 
   const onSubmit = (data: Unidade) => {
     if (defaultData) {
-      data.id = defaultData?.id;
-      updateMutation.mutateAsync({ data });
-
-      return;
+      updateMutation.mutateAsync({ data: { ...data, id: defaultData.id } });
+    } else {
+      createMutation.mutateAsync(data);
     }
-
-    createMutation.mutateAsync(data);
   };
 
   return { onSubmit, isLoading };

@@ -12,8 +12,10 @@ import { HeaderPage } from "@/components/header-page";
 import { useDebounce } from "../../../hooks/use-debounde";
 import { TaxaForm } from "./forms/taxa-form";
 import { Taxa } from "@/src/schemas/configuracoes/taxa-schema";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export default function TaxasPage() {
+  const { podeGerirTaxas, isLoading: isLoadingPermissions } = usePermissions();
   const [searchTerm, setSearchTerm] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTaxa, setEditingTaxa] = useState<Taxa | undefined>();
@@ -56,18 +58,17 @@ export default function TaxasPage() {
 
   return (
     <>
-      <div className="space-y-6 p-4 md:p-6 bg-background">
+      <div className="space-y-6">
         <HeaderPage
           title="Taxas de Imposto & Isenções"
           description="Gerencie as taxas de imposto aplicáveis e os motivos de isenção para diferentes cenários fiscais."
         >
-          <Button
-            onClick={openNewModal}
-            className="h-10 gap-2 font-medium px-4 shadow-sm"
-          >
-            <PackagePlus size={16} />
-            Nova Taxa
-          </Button>
+          {podeGerirTaxas() && (
+            <Button onClick={openNewModal}>
+              <PackagePlus size={16} />
+              Nova
+            </Button>
+          )}
         </HeaderPage>
 
         {/* Informações Auxiliares (Regime Fiscal Sólido) */}
@@ -99,7 +100,7 @@ export default function TaxasPage() {
         </div>
 
         {/* Loading State - Skeleton Corporativo */}
-        {isLoading ? (
+        {isLoading || isLoadingPermissions ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -167,17 +168,19 @@ export default function TaxasPage() {
                     </div>
 
                     {/* Ações Visíveis e Estáveis */}
-                    <div className="pt-4 mt-4 border-t border-border/60 flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-xs gap-1.5 px-2.5"
-                        onClick={() => openEditModal(taxa)}
-                      >
-                        <Edit2 size={12} />
-                        Editar
-                      </Button>
-                    </div>
+                    {podeGerirTaxas() && (
+                      <div className="pt-4 mt-4 border-t border-border/60 flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs gap-1.5 px-2.5"
+                          onClick={() => openEditModal(taxa)}
+                        >
+                          <Edit2 size={12} />
+                          Editar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

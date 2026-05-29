@@ -14,6 +14,7 @@ import { Categoria } from "@/src/schemas/product-schema";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 const columns: ColumnDef<Categoria>[] = [
   {
@@ -44,6 +45,8 @@ export function CategoriesPage() {
   const { openModal, setOpenModal } = useOpenModal<Categoria>();
   const { onSubmitDelete, isLoading: isLoadingDelete } = useFormCategory();
   const { data, isLoading, isError } = useCategorias();
+  const { podeGerirProdutos, isLoading: isLOadingPermissions } =
+    usePermissions();
 
   if (isError) {
     return (
@@ -64,25 +67,26 @@ export function CategoriesPage() {
           description="Gerencie os categorias do seu inventário"
           Icon={<SquareSquare size={24} className="text-muted-foreground" />}
         >
-          <Button
-            className="h-11 gap-2 shadow-xl shadow-primary/20 font-bold px-6"
-            onClick={() =>
-              setOpenModal({ isOpened: true, defaultValue: undefined })
-            }
-          >
-            <PackagePlus size={18} />
-            Nova
-          </Button>
+          {podeGerirProdutos() && (
+            <Button
+              onClick={() =>
+                setOpenModal({ isOpened: true, defaultValue: undefined })
+              }
+            >
+              <PackagePlus size={18} />
+              Nova
+            </Button>
+          )}
         </HeaderPage>
 
         <DataTableV2
           data={data?.results || []}
           columns={columns}
           caption="Categorias"
-          loading={isLoading}
+          loading={isLoading || isLOadingPermissions}
           defaultPageSize={10}
           pageSizeOptions={[10, 25, 50]}
-          actions={["delete", "edit", "view"]}
+          actions={podeGerirProdutos() ? ["delete", "edit", "view"] : ["view"]}
           onEdit={(row) => setOpenModal({ isOpened: true, defaultValue: row })}
           onDelete={(row) => {
             setOpenModal({
@@ -94,7 +98,6 @@ export function CategoriesPage() {
           globalSearch
           columnToggle
           emptyMessage="Nenhuma categoria foi encontrada."
-          onRowClick={(row) => console.log("Categoria:", row)}
         />
       </div>
 

@@ -54,6 +54,7 @@ export const FuncionarioFormSchema = z.object(FuncionarioBaseSchema).refine(
 
 // Schema para criação (sem refine e sem confirm_password)
 export const FuncionarioCreateSchema = z.object({
+  id: z.uuid().optional(),
   first_name: FuncionarioBaseSchema.first_name,
   last_name: FuncionarioBaseSchema.last_name,
   email: FuncionarioBaseSchema.email,
@@ -62,7 +63,7 @@ export const FuncionarioCreateSchema = z.object({
   telemovel: FuncionarioBaseSchema.telemovel,
   papel: FuncionarioBaseSchema.papel,
   ativo: FuncionarioBaseSchema.ativo,
-  filial: FuncionarioBaseSchema.filial,
+  filial: FuncionarioBaseSchema.filial.optional(),
   endereco: FuncionarioBaseSchema.endereco,
   password: FuncionarioBaseSchema.password,
 });

@@ -18,13 +18,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { logoutAction } from "@/src/actions/auth-actions";
 import { User } from "@/src/types/user";
-import { useContext } from "react";
 import { useAuth } from "@/src/providers/auth-provider";
+import { useRouter } from "next/navigation";
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuth();
+  const route = useRouter();
 
   return (
     <SidebarMenu>
@@ -76,7 +77,10 @@ export function NavUser({ user }: { user: User }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => route.push("/perfil")}
+              >
                 <BadgeCheck className="mr-2 h-4 w-4" />
                 Perfil
               </DropdownMenuItem>
@@ -88,7 +92,7 @@ export function NavUser({ user }: { user: User }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-              onSelect={() => logoutAction()}
+              onSelect={() => logout()}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sair da Conta

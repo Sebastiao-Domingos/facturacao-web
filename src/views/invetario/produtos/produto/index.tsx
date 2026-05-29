@@ -23,6 +23,7 @@ import { useProduct } from "@/src/hooks/product/use-products";
 import { useOpenModal } from "@/src/components/modals/form-model-shared";
 import { ProdutoForm } from "../forms/produto-form";
 import { Product } from "@/src/schemas/product-schema";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 // Interface exata baseada na resposta real da tua API
 interface ProdutoDetalhes {
@@ -59,6 +60,7 @@ interface ProdutoDetalhes {
 }
 
 export default function ProdutoDetalhesPage() {
+  const { hasPermission } = usePermissions();
   const { openModal, setOpenModal } = useOpenModal<Product>();
   const params = useParams();
   const router = useRouter();
@@ -121,20 +123,22 @@ export default function ProdutoDetalhesPage() {
           description={`Ficha técnica do registo comercial e tributário na plataforma Dimbo DC.`}
           Icon={data.tipo === "P" ? <Package size={24} /> : <Tag size={24} />}
         >
-          <Button
-            className="h-10 gap-1.5 font-medium px-4 shadow-sm"
-            variant="outline"
-            onClick={() =>
-              setOpenModal({
-                id: data.id,
-                defaultValue: data,
-                isOpened: true,
-              })
-            }
-          >
-            <Edit2 size={14} />
-            Editar Artigo
-          </Button>
+          {hasPermission("gerir_produtos") && (
+            <Button
+              className="h-10 gap-1.5 font-medium px-4 shadow-sm"
+              variant="outline"
+              onClick={() =>
+                setOpenModal({
+                  id: data.id,
+                  defaultValue: data,
+                  isOpened: true,
+                })
+              }
+            >
+              <Edit2 size={14} />
+              Editar
+            </Button>
+          )}
         </HeaderPage>
 
         {/* Grid Principal de Blocos de Informação */}

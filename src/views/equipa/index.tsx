@@ -5,13 +5,13 @@ import { useState } from "react";
 import {
   Plus,
   Search,
-  Filter,
-  MoreVertical,
   Edit,
   Trash2,
   Eye,
   Power,
   PowerOff,
+  Users,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,9 @@ import { FuncionarioForm } from "./forms/funcionario-form";
 import {
   useFuncionarios,
   useFuncionarioMutations,
+  useFuncionarioAtual,
 } from "@/src/hooks/empresa/use-funcionario";
+import { useAfilia } from "@/src/hooks/empresa/afilia/use-afilia";
 import { ErrorComponent } from "@/components/error-component";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -33,8 +35,8 @@ import {
 } from "@/components/ui/select";
 import DataTableV2, { ColumnDef } from "@/components/table/DataTable-v2";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
-// Definição do tipo Funcionario
 interface Funcionario {
   id: string;
   nome_completo: string;
@@ -45,6 +47,7 @@ interface Funcionario {
   ativo: boolean;
   telemovel: string;
   filial_nome: string;
+  filial_id?: string; // opcional, para facilitar comparação
   created_at: string;
 }
 
@@ -108,22 +111,27 @@ const columns: ColumnDef<Funcionario>[] = [
 ];
 
 export function FuncionariosPage() {
+  const { podeGerirUsuarios, isLoading: isLoadingPermissoes } =
+    usePermissions();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterFilial, setFilterFilial] = useState<string>("todas");
   const [filterPapel, setFilterPapel] = useState<string>("todos");
   const [filterAtivo, setFilterAtivo] = useState<string>("todos");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedFuncionario, setSelectedFuncionario] = useState<
-    Funcionario | undefined
-  >();
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [funcionarioToDelete, setFuncionarioToDelete] = useState<
     Funcionario | undefined
   >();
 
   const { data: funcionarios, isLoading, isError } = useFuncionarios();
-  const { toggleStatusMutation, deleteMutation } = useFuncionarioMutations();
+  const { deleteMutation } = useFuncionarioMutations();
+  const { data: filiaisData, isLoading: isLoadingFiliais } = useAfilia();
+  const filiais = filiaisData || [];
 
-  // Filtrar funcionários
+  // Mapeamento de ID da filial para nome (para filtro)
+  const filialMap = new Map(filiais.map((f) => [f.id, f.nome]));
+
   const filteredFuncionarios = funcionarios?.filter((f) => {
     const matchesSearch =
       searchTerm === "" ||
@@ -131,35 +139,26 @@ export function FuncionariosPage() {
       f.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       f.bi.includes(searchTerm);
 
+    // Filtro por filial (compara o nome da filial do funcionário com o nome da filial selecionada)
+    const matchesFilial =
+      filterFilial === "todas" || f.filial_nome === filialMap.get(filterFilial);
+
     const matchesPapel = filterPapel === "todos" || f.papel === filterPapel;
     const matchesAtivo =
       filterAtivo === "todos" ||
       (filterAtivo === "ativo" && f.ativo) ||
       (filterAtivo === "inativo" && !f.ativo);
 
-    return matchesSearch && matchesPapel && matchesAtivo;
+    return matchesSearch && matchesFilial && matchesPapel && matchesAtivo;
   });
-
-  const handleEdit = (funcionario: Funcionario) => {
-    setSelectedFuncionario(funcionario);
-    setModalOpen(true);
-  };
 
   const handleDelete = (funcionario: Funcionario) => {
     setFuncionarioToDelete(funcionario);
     setDeleteModalOpen(true);
   };
 
-  const handleToggleStatus = (funcionario: Funcionario) => {
-    toggleStatusMutation.mutate({
-      id: funcionario.id,
-      ativo: !funcionario.ativo,
-    });
-  };
-
   const handleSuccess = () => {
     setModalOpen(false);
-    setSelectedFuncionario(undefined);
   };
 
   if (isError) {
@@ -172,24 +171,27 @@ export function FuncionariosPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <HeaderPage
         title="Funcionários"
         description="Gerencie os funcionários da sua empresa, controle acessos e permissões."
+        Icon={<Users />}
+        totalItens={funcionarios?.length || 0}
       >
-        <Button
-          onClick={() => {
-            setSelectedFuncionario(undefined);
-            setModalOpen(true);
-          }}
-        >
-          <Plus size={16} className="mr-2" />
-          Novo
-        </Button>
+        {podeGerirUsuarios() && (
+          <Button
+            onClick={() => {
+              setModalOpen(true);
+            }}
+            disabled={isLoading || isLoadingFiliais}
+          >
+            <UserPlus size={16} className="mr-2" /> Novo
+          </Button>
+        )}
       </HeaderPage>
 
       {/* Filtros */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="relative max-w-md w-full">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -200,9 +202,25 @@ export function FuncionariosPage() {
           />
         </div>
 
-        <div className="flex gap-3">
-          <Select value={filterPapel} onValueChange={setFilterPapel}>
+        <div className="flex flex-wrap gap-3">
+          {/* Filtro por Filial */}
+          <Select value={filterFilial} onValueChange={setFilterFilial}>
             <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todas as filiais" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas as filiais</SelectItem>
+              {filiais.map((filial) => (
+                <SelectItem key={filial.id} value={filial.id!}>
+                  {filial.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Filtro por Papel */}
+          <Select value={filterPapel} onValueChange={setFilterPapel}>
+            <SelectTrigger className="w-45">
               <SelectValue placeholder="Filtrar por papel" />
             </SelectTrigger>
             <SelectContent>
@@ -215,6 +233,7 @@ export function FuncionariosPage() {
             </SelectContent>
           </Select>
 
+          {/* Filtro por Status */}
           <Select value={filterAtivo} onValueChange={setFilterAtivo}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Status" />
@@ -229,7 +248,7 @@ export function FuncionariosPage() {
       </div>
 
       {/* Tabela */}
-      {isLoading ? (
+      {isLoading || isLoadingFiliais || isLoadingPermissoes ? (
         <div className="rounded-lg border border-border">
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -247,36 +266,18 @@ export function FuncionariosPage() {
           showCount={true}
           density="normal"
           emptyMessage="Nenhum funcionário encontrado."
-          actions={["edit", "delete"]}
-          onEdit={handleEdit}
+          actions={podeGerirUsuarios() ? ["delete", "view"] : ["view"]}
           onDelete={handleDelete}
-          customActions={[
-            {
-              key: "toggle-status",
-              label: (row) => (row.ativo ? "Desativar" : "Ativar"),
-              icon: (row) =>
-                row.ativo ? <PowerOff size={14} /> : <Power size={14} />,
-              variant: (row) => (row.ativo ? "warning" : "success"),
-              onClick: handleToggleStatus,
-            },
-            {
-              key: "view-details",
-              label: "Ver Detalhes",
-              icon: <Eye size={14} />,
-              variant: "default",
-              onClick: (row) => {
-                window.location.href = `/equipa/${row.id}`;
-              },
-            },
-          ]}
+          onView={(row) =>
+            (window.location.href = `/equipa/funcionarios/${row.id}`)
+          }
         />
       )}
 
-      {/* Modals */}
+      {/* Modais */}
       <FuncionarioForm
         open={modalOpen}
         onOpenChange={setModalOpen}
-        defaultValues={selectedFuncionario}
         onSuccess={handleSuccess}
       />
 

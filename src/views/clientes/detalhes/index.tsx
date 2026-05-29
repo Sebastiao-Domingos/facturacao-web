@@ -34,14 +34,16 @@ import {
 import { ErrorComponent } from "@/components/error-component";
 import { useState } from "react";
 import { ClienteForm } from "../forms/cliente-form";
-import { toast } from "sonner";
 import { ConfirmDeleteModal } from "@/src/components/shared/confirm-delete-modal";
+import { usePermissions } from "@/src/hooks/authorition/use-permition";
 
 export function ClienteDetailPage() {
   const { cliente: id } = useParams();
   const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { podeGerirClientes, isLoading: isLoadingPermissions } =
+    usePermissions();
 
   const { data: cliente, isLoading, isError } = useCliente(id as string);
   const { toggleStatusMutation, deleteMutation } = useClienteMutations();
@@ -60,7 +62,7 @@ export function ClienteDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingPermissions) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <div className="flex items-center gap-4">
@@ -85,7 +87,7 @@ export function ClienteDetailPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -109,26 +111,30 @@ export function ClienteDetailPage() {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setEditModalOpen(true)}>
-            <Edit size={16} className="mr-2" />
-            Editar
-          </Button>
-          <Button
-            variant={cliente.ativo ? "destructive" : "default"}
-            onClick={handleToggleStatus}
-          >
-            {cliente.ativo ? (
-              <>
-                <PowerOff size={16} className="mr-2" />
-                Desativar
-              </>
-            ) : (
-              <>
-                <Power size={16} className="mr-2" />
-                Ativar
-              </>
-            )}
-          </Button>
+          {podeGerirClientes() && (
+            <>
+              <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+                <Edit size={16} className="mr-2" />
+                Editar
+              </Button>
+              <Button
+                variant={cliente.ativo ? "destructive" : "default"}
+                onClick={handleToggleStatus}
+              >
+                {cliente.ativo ? (
+                  <>
+                    <PowerOff size={16} className="mr-2" />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <Power size={16} className="mr-2" />
+                    Ativar
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

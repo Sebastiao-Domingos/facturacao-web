@@ -77,6 +77,7 @@ export function PagamentosPage() {
       header: "Documento",
       sortable: true,
       width: 150,
+      filterable: true,
       cell: (value, row) => (
         <Button
           variant="link"
@@ -158,12 +159,12 @@ export function PagamentosPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-6">
+    <div className="space-y-6">
       <HeaderPage
         title="Pagamentos"
         description="Histórico de pagamentos registados no sistema."
       >
-        <Button onClick={() => router.push("/faturacao")}>
+        <Button onClick={() => router.push("/faturacao/documentos")}>
           <FileText size={18} className="mr-2" />
           Ver Documentos
         </Button>

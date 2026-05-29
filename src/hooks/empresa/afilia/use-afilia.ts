@@ -16,6 +16,16 @@ export function useAfilia() {
   });
 }
 
+export function useFilial(id: string) {
+  return useQuery({
+    queryKey: ["afilias", id],
+    queryFn: async () => {
+      const response = await service.getById(id);
+      return response;
+    },
+    enabled: !!id,
+  });
+}
 export function useAfiliaMutations() {
   const queryClient = useQueryClient();
 

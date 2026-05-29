@@ -92,6 +92,8 @@ export type DashboardData = z.infer<typeof DashboardDataSchema>;
 export const DashboardFiltersSchema = z.object({
   filial: z.string().optional(),
   periodo: z.string().optional(),
+  data_inicio: z.string().optional(),
+  data_fim: z.string().optional(),
 });
 
 export type DashboardFilters = z.infer<typeof DashboardFiltersSchema>;
@@ -153,3 +155,34 @@ export const formatarVariacao = (variacao: number): string => {
   const sinal = variacao > 0 ? "+" : "";
   return `${sinal}${variacao.toFixed(1)}%`;
 };
+
+// ============ RELATÓRIO DE VENDAS POR PERÍODO ============
+export const VendaPeriodoFlexivelSchema = z.object({
+  periodo: z.string(),
+  total: z.number(),
+  quantidade: z.number(),
+});
+export type VendaPeriodoFlexivel = z.infer<typeof VendaPeriodoFlexivelSchema>;
+
+// ============ RELATÓRIO DE PRODUTOS ============
+export const RelatorioProdutoSchema = z.object({
+  id: z.string(),
+  nome: z.string(),
+  codigo: z.string(),
+  quantidade: z.number(),
+  total_vendido: z.number(),
+  valor_iva: z.number(),
+});
+export type RelatorioProduto = z.infer<typeof RelatorioProdutoSchema>;
+
+// ============ RELATÓRIO DE CLIENTES ============
+export const RelatorioClienteSchema = z.object({
+  id: z.string(),
+  nome: z.string(),
+  nif: z.string().nullable(),
+  email: z.string().nullable(),
+  telefone: z.string().nullable(),
+  total_compras: z.number(),
+  quantidade_documentos: z.number(),
+});
+export type RelatorioCliente = z.infer<typeof RelatorioClienteSchema>;

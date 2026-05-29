@@ -35,3 +35,16 @@ export function useEmpresaMutations() {
 
   return { updateMutation };
 }
+
+// src/hooks/empresa/use-empresa.ts
+
+export const empresaKeys = {
+  me: () => ["empresa", "me"] as const,
+};
+
+export const useMinhaEmpresa = () => {
+  return useQuery({
+    queryKey: empresaKeys.me(),
+    queryFn: () => service.getMinhaEmpresa(),
+  });
+};
