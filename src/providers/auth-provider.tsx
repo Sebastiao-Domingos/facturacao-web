@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import CryptoJS from "crypto-js"; // Importação da biblioteca
 import { api } from "@/src/services/api";
 import { User, AuthResponse, AuthContextType } from "@/src/types/user";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
@@ -19,6 +20,7 @@ const cookieConfig = {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -76,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       api.defaults.headers.Authorization = `Bearer ${data.access}`;
 
       const { data: userData } = await api.get<User>(
-        "organizacao/utilizador/logado/"
+        "organizacao/utilizador/logado/",
       );
 
       // Criptografamos o objeto do utilizador antes de salvar
@@ -87,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       Cookies.set("user", encryptedUser, cookieConfig); // Salva o texto cifrado
 
       setUser(userData);
-      router.replace("/produtos");
+      router.replace("/");
     } catch (error) {
       console.error("Falha ao completar login:", error);
       logout();
@@ -96,16 +98,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    Cookies.remove("token", { path: "/" });
-    Cookies.remove("refresh", { path: "/" });
-    Cookies.remove("user", { path: "/" });
+    // Remover todos os cookies com configuração explícita
+    const cookies = ["token", "refresh", "user"];
+    cookies.forEach((name) => {
+      Cookies.remove(name, { path: "/" });
+      Cookies.remove(name, { path: "/", domain: window.location.hostname });
+    });
 
-    setUser(null);
+    // Limpar localStorage (caso exista algum dado)
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
+
+    // Limpar estado do React Query
+    queryClient.clear();
+    queryClient.resetQueries(); // força reset de todas as queries
+
+    // Limpar headers do axios
     delete api.defaults.headers.Authorization;
 
-    router.replace("/login");
-  };
+    // Limpar estado local
+    setUser(null);
 
+    // Forçar redirecionamento com recarregamento da página
+    window.location.href = "/login";
+  };
   return (
     <AuthContext.Provider
       value={{
