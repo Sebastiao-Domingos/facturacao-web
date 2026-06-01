@@ -342,7 +342,7 @@ export function StocksPage() {
     : 0;
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <HeaderPage
         title="Gestão de Stock"
         description="Visualize e gerencie o stock de produtos por filial."

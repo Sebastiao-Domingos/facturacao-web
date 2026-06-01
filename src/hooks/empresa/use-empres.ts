@@ -21,7 +21,8 @@ export function useEmpresaMutations() {
 
   // Atualizar Produto
   const updateMutation = useMutation({
-    mutationFn: ({ data }: { data: Empresa }) => service.update(data),
+    mutationFn: ({ data, id }: { data: FormData; id: string }) =>
+      service.update({ data, id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["empresa"] });
       toast.success("Empresa atualizada!");

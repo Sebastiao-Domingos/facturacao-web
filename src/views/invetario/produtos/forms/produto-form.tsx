@@ -44,7 +44,6 @@ export function ProdutoForm({
     control,
     errors,
     tipo,
-    ativo,
     preview,
     isLoading,
     isError,
