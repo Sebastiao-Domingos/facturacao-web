@@ -17,6 +17,7 @@ import {
   UsersRound,
   UserSquare2Icon,
   BookCheck,
+  Palette,
 } from "lucide-react";
 
 interface NavItem {
@@ -159,7 +160,7 @@ export const data: { navMain: NavItem[] } = {
         {
           title: "Preferências",
           url: "/preferencias",
-          icon: Settings,
+          icon: Palette,
         },
         {
           title: "Unidades",

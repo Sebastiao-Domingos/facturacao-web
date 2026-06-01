@@ -28,8 +28,11 @@ import { NavUser } from "./nav-user";
 import { useAuth } from "@/src/providers/auth-provider";
 import { data } from "@/data/menu";
 import { cn } from "@/lib/utils";
+import { useMinhaEmpresa } from "@/src/hooks/empresa/use-empres";
+import { Skeleton } from "./ui/skeleton";
 
 export function AppSidebar() {
+  const { data: empresa, isLoading } = useMinhaEmpresa();
   const { user } = useAuth();
   const pathname = usePathname();
   const { state } = useSidebar();
@@ -44,15 +47,38 @@ export function AppSidebar() {
       {/* Header */}
       <SidebarHeader className="flex h-20 flex-row items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Store size={20} />
+          {/* Logotipo da Empresa */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-primary-foreground overflow-hidden">
+            {isLoading ? (
+              <Skeleton className="h-full w-full rounded-lg" />
+            ) : empresa?.logotipo ? (
+              <img
+                src={empresa.logotipo}
+                alt="Logotipo"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Store size={20} />
+            )}
           </div>
+
           {!isCollapsed && (
             <div className="flex flex-col leading-none">
-              <span className="text-base font-bold">Dimbo DC</span>
-              <span className="text-[10px] text-muted-foreground">
-                Enterprise
-              </span>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-4 w-28 mb-1" />
+                  <Skeleton className="h-3 w-20" />
+                </>
+              ) : (
+                <>
+                  <span className="text-base font-bold">
+                    {empresa?.nome_fantasia || "Minha Empresa"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {empresa?.regime_tributario || "Enterprise"}
+                  </span>
+                </>
+              )}
             </div>
           )}
         </div>

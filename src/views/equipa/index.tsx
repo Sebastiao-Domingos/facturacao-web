@@ -132,7 +132,7 @@ export function FuncionariosPage() {
   // Mapeamento de ID da filial para nome (para filtro)
   const filialMap = new Map(filiais.map((f) => [f.id, f.nome]));
 
-  const filteredFuncionarios = funcionarios?.filter((f) => {
+  const filteredFuncionarios = funcionarios?.results.filter((f) => {
     const matchesSearch =
       searchTerm === "" ||
       f.nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -176,7 +176,7 @@ export function FuncionariosPage() {
         title="Funcionários"
         description="Gerencie os funcionários da sua empresa, controle acessos e permissões."
         Icon={<Users />}
-        totalItens={funcionarios?.length || 0}
+        totalItens={funcionarios?.results.length || 0}
       >
         {podeGerirUsuarios() && (
           <Button
