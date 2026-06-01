@@ -36,34 +36,10 @@ import { EmpresaForm } from "./form/empresa-form";
 
 export function EmpresaPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const { data: empresa, isLoading, isError, refetch } = useMinhaEmpresa();
-  const { updateMutation } = useEmpresaMutations();
+  const { data: empresa, isLoading, isError } = useMinhaEmpresa();
   const { isAdmin, isSuperAdmin } = usePermissions();
 
   const podeEditar = isAdmin || isSuperAdmin;
-
-  const handleSubmit = async (data: any) => {
-    if (!empresa) return;
-    await updateMutation.mutateAsync({
-      data: {
-        id: empresa.id!,
-        nome_fantasia: data.nome_fantasia,
-        razao_social: data.razao_social,
-        nif: data.nif,
-        moeda_padrao: data.moeda_padrao,
-        regime_tributario: data.regime_tributario,
-        logotipo: empresa.logotipo,
-        endereco: {
-          bairro: data.endereco.bairro!,
-          rua: data.endereco.rua!,
-          ponto_referencia: data.endereco.ponto_referencia!,
-          municipio: data.endereco.municipio!,
-        },
-      },
-    });
-    setEditModalOpen(false);
-    refetch();
-  };
 
   if (!podeEditar) {
     return <AccessDenied message="Acesso restrito a administradores" />;
@@ -179,7 +155,7 @@ export function EmpresaPage() {
                     Nome Fantasia
                   </p>
                   <p className="text-base font-medium">
-                    {empresa.nome_fantasia}
+                    {empresa.nome_fantasia} - {empresa.slogan}
                   </p>
                 </div>
                 <div>
@@ -290,22 +266,14 @@ export function EmpresaPage() {
         </div>
 
         {/* Modal de Edição com componente separado */}
-        <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Building2 size={18} />
-                Editar Empresa
-              </DialogTitle>
-            </DialogHeader>
-            <EmpresaForm
-              empresa={empresa}
-              onSubmit={handleSubmit}
-              onCancel={() => setEditModalOpen(false)}
-              isPending={updateMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+
+        <EmpresaForm
+          onOpenChange={setEditModalOpen}
+          open={editModalOpen}
+          empresa={empresa}
+          onCancel={() => setEditModalOpen(false)}
+          onSuccess={() => setEditModalOpen(false)}
+        />
       </div>
     </TooltipProvider>
   );

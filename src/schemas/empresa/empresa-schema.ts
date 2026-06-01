@@ -1,17 +1,19 @@
 import z from "zod";
 import { EnderecoSchema } from "../localidade/municipio-schema";
+import { sl } from "date-fns/locale";
 
 export const EmpresaSchema = z.object({
   id: z.uuid(),
   nome_fantasia: z.string(),
+  slogan: z.string().optional(),
   razao_social: z.string(),
   nif: z.string(),
   logotipo: z.instanceof(File).or(z.url()),
   endereco: EnderecoSchema,
   moeda_padrao: z.string(),
   regime_tributario: z.string(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
   total_funcionarios: z.number().optional().nullable(),
   total_filiais: z.number().optional().nullable(),
   total_produtos_stock: z.number().optional().nullable(),

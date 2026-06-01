@@ -12,8 +12,8 @@ export class EmpresaService {
     return response.data;
   }
 
-  async update(data: Empresa): Promise<Empresa> {
-    const response = await api.patch(`/organizacao/empresas/${data.id}/`, data);
+  async update({ data, id }: { data: FormData; id: string }): Promise<Empresa> {
+    const response = await api.patch(`/organizacao/empresas/${id}/`, data);
     return EmpresaSchema.parse(response.data);
   }
 
