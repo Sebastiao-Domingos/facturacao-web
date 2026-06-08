@@ -1,99 +1,221 @@
 // src/app/(dashboard)/page.tsx
 "use client";
 
+import { useState } from "react";
+import {
+  DollarSign,
+  Package,
+  Users,
+  Building2,
+  TrendingUp,
+  AlertTriangle,
+  ShoppingCart,
+  UserPlus,
+  RefreshCw,
+  BarChart2Icon,
+  Sparkles,
+  Zap,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useDashboard } from "@/src/hooks/empresa/use-dashboard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorComponent } from "@/components/error-component";
+import { useRouter } from "next/navigation";
+import { KPICard } from "./components/KPICard";
+import { VendasChart } from "./components/endasChart";
+import { TopProdutos } from "./components/TopProdutos";
+import { AlertasStock } from "./components/AlertasStock";
+import { UltimasMovimentacoes } from "./components/UltimasMovimentacoes";
 import { HeaderPage } from "@/components/header-page";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Package, Users, Wallet, BarChart2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-const stats = [
-  {
-    title: "Vendas de Hoje",
-    value: "145.250,00 Kz",
-    description: "+12% em relação a ontem",
-    icon: Wallet,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    title: "Produtos em Stock",
-    value: "1.240",
-    description: "24 itens com stock crítico",
-    icon: Package,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    title: "Novos Clientes",
-    value: "18",
-    description: "Este mês",
-    icon: Users,
-    color: "text-violet-500",
-    bg: "bg-violet-500/10",
-  },
-  {
-    title: "Meta Mensal",
-    value: "68%",
-    description: "Objetivo: 2.500.000 Kz",
-    icon: TrendingUp,
-    color: "text-amber-500",
-    bg: "bg-amber-500/10",
-  },
-];
+export function DashboardPage() {
+  const router = useRouter();
+  const { data, isLoading, isError, refetch } = useDashboard();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-export function DashboardHome() {
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
+
+  // ──────────────────────────────────────────────
+  // Estado de Carregamento (Loading Skeleton)
+  // ──────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="space-y-3 sm:space-y-4 md:space-y-6 ">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b border-border pb-3 sm:pb-4 md:pb-6">
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 rounded-lg sm:rounded-xl shrink-0" />
+              <div className="space-y-1">
+                <Skeleton className="h-5 sm:h-6 md:h-7 w-28 sm:w-36 md:w-44" />
+                <Skeleton className="h-3 sm:h-3.5 w-44 sm:w-56 md:w-64" />
+              </div>
+            </div>
+          </div>
+          <Skeleton className="h-8 sm:h-9 md:h-10 w-24 sm:w-28 rounded-lg" />
+        </div>
+
+        {/* KPIs Skeleton */}
+        <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton
+              key={i}
+              className="h-24 sm:h-28 md:h-32 rounded-lg sm:rounded-xl"
+            />
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-3">
+          <Skeleton className="lg:col-span-2 h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] rounded-lg sm:rounded-xl" />
+          <Skeleton className="h-[250px] sm:h-[300px] md:h-[350px] lg:h-[400px] rounded-lg sm:rounded-xl" />
+        </div>
+
+        {/* Tables Skeleton */}
+        <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-2">
+          <Skeleton className="h-[220px] sm:h-[260px] md:h-[300px] lg:h-[350px] rounded-lg sm:rounded-xl" />
+          <Skeleton className="h-[220px] sm:h-[260px] md:h-[300px] lg:h-[350px] rounded-lg sm:rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  // Estado de Erro
+  // ──────────────────────────────────────────────
+  if (isError || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-3 sm:p-4 md:p-6">
+        <ErrorComponent
+          message="Erro ao carregar dashboard"
+          description="Não foi possível carregar os dados. Verifique a sua ligação e tente novamente."
+        />
+      </div>
+    );
+  }
+
+  const {
+    kpis,
+    vendas_ultimos_12_meses,
+    top_produtos,
+    alertas_stock,
+    ultimas_movimentacoes,
+  } = data;
+
+  // Data atual formatada
+  const hoje = new Date();
+  const dataFormatada = hoje.toLocaleDateString("pt-PT", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
+      {/* ── Header ── */}
       <HeaderPage
-        title="Painel de Controlo"
-        description="Bem-vendo no Painel de Controlo, veja o resumo das suas operações"
-        Icon={<BarChart2 size={20} className="text-muted-foreground" />}
-      />
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <Card
-            key={i}
-            className="border-border/50 bg-background/50 backdrop-blur-sm overflow-hidden group"
+        title="Dashboard"
+        description={`${dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1)} • Visão geral do negócio`}
+        Icon={<BarChart2Icon size={22} />}
+      >
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[10px] sm:text-xs font-semibold"
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground opacity-80">
-                {stat.title}
-              </CardTitle>
-              <div
-                className={`p-2 rounded-xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110`}
-              >
-                <stat.icon size={18} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black tracking-tighter">
-                {stat.value}
-              </div>
-              <p className="text-xs font-medium text-muted-foreground mt-1">
-                {stat.description}
-              </p>
-              {/* Mini gráfico visual sutil */}
-              <div className="mt-4 h-1 w-full bg-muted rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${stat.bg.replace(
-                    "/10",
-                    "",
-                  )} w-[60%] opacity-50`}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            <Zap size={12} className="text-emerald-500" />
+            <span className="hidden md:inline">Dados em</span> Tempo Real
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="gap-1.5 h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 border-border hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-all group"
+          >
+            <RefreshCw
+              size={14}
+              className={
+                isRefreshing
+                  ? "animate-spin text-primary"
+                  : "group-hover:text-primary transition-colors"
+              }
+            />
+            <span className="hidden sm:inline">Actualizar</span>
+          </Button>
+        </div>
+      </HeaderPage>
+
+      {/* ── KPIs ── */}
+      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <KPICard
+          titulo="Faturação do Mês"
+          valor={kpis.faturacao_mes}
+          formato="moeda"
+          variacao={kpis.variacao_mensal}
+          icon={<DollarSign size={18} />}
+        />
+        <KPICard
+          titulo="Faturação Anual"
+          valor={kpis.faturacao_ano}
+          formato="moeda"
+          icon={<TrendingUp size={18} />}
+        />
+        <KPICard
+          titulo="Clientes"
+          valor={kpis.total_clientes}
+          icon={<Users size={18} />}
+        />
+        <KPICard
+          titulo="Produtos"
+          valor={kpis.total_produtos}
+          icon={<Package size={18} />}
+        />
+        <KPICard
+          titulo="Funcionários"
+          valor={kpis.total_funcionarios}
+          icon={<UserPlus size={18} />}
+        />
+        <KPICard
+          titulo="Filiais"
+          valor={kpis.total_filiais}
+          icon={<Building2 size={18} />}
+        />
+        <KPICard
+          titulo="Stock Baixo"
+          valor={kpis.produtos_stock_baixo}
+          icon={<AlertTriangle size={18} />}
+        />
+        <KPICard
+          titulo="Produtos Esgotados"
+          valor={kpis.produtos_esgotados}
+          icon={<ShoppingCart size={18} />}
+        />
       </div>
 
-      {/* Placeholder para Gráficos Maiores */}
-      <div className="grid gap-4 md:grid-cols-7">
-        <Card className="md:col-span-4 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
-          [Gráfico de Vendas Semanais]
-        </Card>
-        <Card className="md:col-span-3 h-87.5 border-border/50 bg-background/50 flex items-center justify-center italic text-muted-foreground">
-          [Produtos Mais Vendidos]
-        </Card>
+      {/* ── Gráfico de Vendas + Top Produtos ── */}
+      <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <VendasChart data={vendas_ultimos_12_meses} />
+        </div>
+        <div>
+          <TopProdutos data={top_produtos} />
+        </div>
+      </div>
+
+      {/* ── Alertas de Stock + Últimas Movimentações ── */}
+      <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-2">
+        <AlertasStock
+          data={alertas_stock}
+          onVerStock={() => router.push("/stock")}
+        />
+        <UltimasMovimentacoes data={ultimas_movimentacoes} />
       </div>
     </div>
   );

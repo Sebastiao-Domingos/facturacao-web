@@ -37,7 +37,8 @@ export function FormModal({
             Preencha os dados do(a) {item} abaixo.
           </DialogDescription>
           <p className="text-xs text-muted-foreground">
-            * Campos marcados são obrigatórios
+            <span className="text-primary">*</span> Campos marcados são
+            obrigatórios
           </p>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] overflow-y-auto">

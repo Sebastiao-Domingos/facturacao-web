@@ -18,6 +18,7 @@ import {
   UserSquare2Icon,
   BookCheck,
   Palette,
+  Locate,
 } from "lucide-react";
 
 interface NavItem {
@@ -126,14 +127,9 @@ export const data: { navMain: NavItem[] } = {
       icon: MapIcon,
       items: [
         {
-          title: "Provincias",
+          title: "Provincias e Municípios",
           url: "/provincias",
-          icon: MapIcon,
-        },
-        {
-          title: "Municipios",
-          url: "/municipios",
-          icon: MapIcon,
+          icon: Locate,
         },
       ],
     },

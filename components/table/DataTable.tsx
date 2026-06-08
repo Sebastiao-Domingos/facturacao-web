@@ -1,3 +1,4 @@
+// components/table/DataTable.tsx
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
@@ -138,7 +139,6 @@ const IconSpinner = () => (
 function SortIndicator({ direction }: { direction: SortDirection }) {
   return (
     <span className="ml-1.5 flex flex-col gap-px opacity-50">
-      {/* Usa a variável --table-sort-active via style inline para compatibilidade */}
       <span
         style={{
           color: direction === "asc" ? "var(--table-sort-active)" : undefined,
@@ -158,7 +158,7 @@ function SortIndicator({ direction }: { direction: SortDirection }) {
 }
 
 // ─────────────────────────────────────────────
-//  PAGINATION
+//  PAGINATION — CORRIGIDO (hydration mismatch)
 // ─────────────────────────────────────────────
 interface PaginationProps {
   page: number;
@@ -179,17 +179,22 @@ function Pagination({
   onPageChange,
   onPageSizeChange,
 }: PaginationProps) {
-  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, total);
+  // Garantir valores seguros para SSR — sempre números válidos
+  const safePage = Math.max(1, page);
+  const safePageCount = Math.max(1, pageCount);
+  const start = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const end = Math.min(safePage * pageSize, total);
+  const isFirstPage = safePage <= 1;
+  const isLastPage = safePage >= safePageCount;
 
   const pages = useMemo(() => {
     const delta = 1;
     const range: (number | "…")[] = [];
-    for (let i = 1; i <= pageCount; i++) {
+    for (let i = 1; i <= safePageCount; i++) {
       if (
         i === 1 ||
-        i === pageCount ||
-        (i >= page - delta && i <= page + delta)
+        i === safePageCount ||
+        (i >= safePage - delta && i <= safePage + delta)
       ) {
         range.push(i);
       } else if (range[range.length - 1] !== "…") {
@@ -197,7 +202,7 @@ function Pagination({
       }
     }
     return range;
-  }, [page, pageCount]);
+  }, [safePage, safePageCount]);
 
   return (
     <div
@@ -215,34 +220,12 @@ function Pagination({
       {/* Botões de página */}
       <div className="flex items-center gap-1">
         {/* Anterior */}
-        <button
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 1}
-          aria-label="Página anterior"
-          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40"
-          style={
-            {
-              background: "var(--table-pagination-btn)",
-              color: "var(--table-muted)",
-              "--tw-ring-color": "var(--ring)",
-            } as React.CSSProperties
-          }
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background =
-              "var(--table-pagination-btn-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "var(--table-pagination-btn)")
-          }
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-            <path
-              fillRule="evenodd"
-              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+        <PaginationNavButton
+          onClick={() => onPageChange(safePage - 1)}
+          disabled={isFirstPage}
+          ariaLabel="Página anterior"
+          direction="prev"
+        />
 
         {/* Páginas */}
         {pages.map((p, i) =>
@@ -258,40 +241,19 @@ function Pagination({
             <PaginationButton
               key={p}
               page={p as number}
-              isActive={page === p}
+              isActive={safePage === p}
               onClick={() => onPageChange(p as number)}
             />
-          )
+          ),
         )}
 
         {/* Próxima */}
-        <button
-          onClick={() => onPageChange(page + 1)}
-          disabled={page === pageCount}
-          aria-label="Próxima página"
-          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40"
-          style={
-            {
-              background: "var(--table-pagination-btn)",
-              color: "var(--table-muted)",
-            } as React.CSSProperties
-          }
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background =
-              "var(--table-pagination-btn-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "var(--table-pagination-btn)")
-          }
-        >
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-            <path
-              fillRule="evenodd"
-              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+        <PaginationNavButton
+          onClick={() => onPageChange(safePage + 1)}
+          disabled={isLastPage}
+          ariaLabel="Próxima página"
+          direction="next"
+        />
       </div>
 
       {/* Linhas por página */}
@@ -316,7 +278,74 @@ function Pagination({
   );
 }
 
-// Botão de página isolado para gerir hover com estado activo
+// ─────────────────────────────────────────────
+//  PAGINATION NAV BUTTON (Novo — sem hydration mismatch)
+// ─────────────────────────────────────────────
+function PaginationNavButton({
+  onClick,
+  disabled,
+  ariaLabel,
+  direction,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  ariaLabel: string;
+  direction: "prev" | "next";
+}) {
+  // Garantir que disabled é sempre boolean
+  const isDisabled = disabled === true;
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={isDisabled}
+      aria-label={ariaLabel}
+      aria-disabled={isDisabled}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-40"
+      style={
+        {
+          background: "var(--table-pagination-btn)",
+          color: "var(--table-muted)",
+          cursor: isDisabled ? "not-allowed" : "pointer",
+          opacity: isDisabled ? 0.4 : 1,
+        } as React.CSSProperties
+      }
+      onMouseEnter={(e) => {
+        if (!isDisabled) {
+          e.currentTarget.style.background =
+            "var(--table-pagination-btn-hover)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDisabled) {
+          e.currentTarget.style.background = "var(--table-pagination-btn)";
+        }
+      }}
+    >
+      {direction === "prev" ? (
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <path
+            fillRule="evenodd"
+            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <path
+            fillRule="evenodd"
+            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────
+//  PAGINATION BUTTON — CORRIGIDO (hydration mismatch)
+// ─────────────────────────────────────────────
 function PaginationButton({
   page,
   isActive,
@@ -327,21 +356,23 @@ function PaginationButton({
   onClick: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  // Garantir que isActive é sempre boolean
+  const active = isActive === true;
 
-  const bg = isActive
+  const bg = active
     ? "var(--table-pagination-active-bg)"
     : hovered
-    ? "var(--table-pagination-btn-hover)"
-    : "var(--table-pagination-btn)";
+      ? "var(--table-pagination-btn-hover)"
+      : "var(--table-pagination-btn)";
 
-  const color = isActive
+  const color = active
     ? "var(--table-pagination-active-fg)"
     : "var(--table-muted)";
 
   return (
     <button
       onClick={onClick}
-      aria-current={isActive ? "page" : undefined}
+      aria-current={active ? "page" : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-xs font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2"
@@ -473,7 +504,7 @@ export function DataTable<T extends object>({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
   const [visibleCols, setVisibleCols] = useState<Set<string>>(
-    () => new Set(columns.map((c) => String(c.accessorKey)))
+    () => new Set(columns.map((c) => String(c.accessorKey))),
   );
 
   // ── Form ──
@@ -491,7 +522,7 @@ export function DataTable<T extends object>({
   // ── Visible columns ──
   const visibleColumns = useMemo(
     () => columns.filter((c) => visibleCols.has(String(c.accessorKey))),
-    [columns, visibleCols]
+    [columns, visibleCols],
   );
 
   const toggleColumn = useCallback((key: string) => {
@@ -519,7 +550,7 @@ export function DataTable<T extends object>({
       }
       setPage(1);
     },
-    [sortKey, sortDir]
+    [sortKey, sortDir],
   );
 
   // ── Pipeline: filter → sort → paginate ──
@@ -531,14 +562,14 @@ export function DataTable<T extends object>({
         columns.some((col) => {
           const val = getNestedValue(row, String(col.accessorKey));
           return matchesFilter(val, globalQuery);
-        })
+        }),
       );
     }
 
     Object.entries(columnFilters).forEach(([key, query]) => {
       if (!query || typeof query !== "string") return;
       rows = rows.filter((row) =>
-        matchesFilter(getNestedValue(row, key), query)
+        matchesFilter(getNestedValue(row, key), query),
       );
     });
 
@@ -560,7 +591,7 @@ export function DataTable<T extends object>({
   const pageCount = Math.max(1, Math.ceil(processed.length / pageSize));
   const paged = useMemo(
     () => processed.slice((page - 1) * pageSize, page * pageSize),
-    [processed, page, pageSize]
+    [processed, page, pageSize],
   );
 
   const handlePageSizeChange = useCallback((s: number) => {
@@ -575,7 +606,7 @@ export function DataTable<T extends object>({
     <div
       className={clsx(
         "relative flex flex-col overflow-hidden shadow-sm",
-        className
+        className,
       )}
       style={{
         background: "var(--table-bg)",
@@ -678,15 +709,15 @@ export function DataTable<T extends object>({
                     className={clsx(
                       "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider select-none transition-colors",
                       col.sortable && "cursor-pointer",
-                      col.className
+                      col.className,
                     )}
                     onClick={() => col.sortable && handleSort(key)}
                     aria-sort={
                       dir === "asc"
                         ? "ascending"
                         : dir === "desc"
-                        ? "descending"
-                        : "none"
+                          ? "descending"
+                          : "none"
                     }
                   >
                     <span className="inline-flex items-center gap-0.5">
@@ -814,8 +845,8 @@ function TableRow<T extends object>({
   const bg = hovered
     ? "var(--table-row-hover)"
     : rowIdx % 2 !== 0
-    ? "var(--table-row-stripe)"
-    : "transparent";
+      ? "var(--table-row-stripe)"
+      : "transparent";
 
   return (
     <tr
@@ -824,7 +855,7 @@ function TableRow<T extends object>({
       onMouseLeave={() => setHovered(false)}
       className={clsx(
         "transition-colors duration-100",
-        onRowClick && "cursor-pointer"
+        onRowClick && "cursor-pointer",
       )}
       style={{
         background: bg,

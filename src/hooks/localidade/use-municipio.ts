@@ -28,7 +28,7 @@ export function useMunicipioMutations() {
   const createMutation = useMutation({
     mutationFn: (newData: Municipio) => service.create(newData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["municipios"] });
+      queryClient.invalidateQueries({ queryKey: ["municipios", "provincias"] });
       toast.success("Município criada com sucesso!");
     },
     onError: (error) =>
@@ -41,7 +41,7 @@ export function useMunicipioMutations() {
   const updateMutation = useMutation({
     mutationFn: ({ data }: { data: Municipio }) => service.update(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["municipios"] });
+      queryClient.invalidateQueries({ queryKey: ["municipios", "provincias"] });
       toast.success("Município atualizado!");
     },
     onError: (error) => {
@@ -54,7 +54,7 @@ export function useMunicipioMutations() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => service.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["municipios"] });
+      queryClient.invalidateQueries({ queryKey: ["municipios", "provincias"] });
       toast.success("Município Eliminado!");
     },
     onError: (error) => {

@@ -1,4 +1,4 @@
-import { DashboardPage } from "@/src/views/dashboard";
+import { DashboardPage } from "@/src/views/dashboard/test";
 
 export default DashboardPage;
 

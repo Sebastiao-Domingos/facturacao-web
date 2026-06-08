@@ -1,10 +1,10 @@
-// src/components/inventory/category-form.tsx
+// src/components/localidade/municipio-form.tsx
 "use client";
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin, Save, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,13 +33,14 @@ import {
   Municipio,
   MunicipioSchema,
 } from "@/src/schemas/localidade/municipio-schema";
-import { FormAsyncFancySelect } from "@/components/select/sync-fancy-select";
+import { FormModal } from "../modals/form-model-shared";
 
 interface MunicipioFormProps {
   initialData?: Municipio | null;
   onSuccess?: () => void;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  provinciaId: string;
 }
 
 export function MunicipioForm({
@@ -47,16 +48,19 @@ export function MunicipioForm({
   onSuccess,
   isOpen,
   onOpenChange,
+  provinciaId,
 }: MunicipioFormProps) {
   const { createMutation, updateMutation } = useMunicipioMutations();
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isEditing = !!initialData?.id;
 
   const form = useForm<Municipio>({
     resolver: zodResolver(MunicipioSchema),
     defaultValues: {
       nome: "",
+      provincia: provinciaId,
     },
-    mode: "onChange", // Validação em tempo real
+    mode: "onChange",
     reValidateMode: "onChange",
   });
 
@@ -66,55 +70,50 @@ export function MunicipioForm({
       if (initialData?.id) {
         form.reset({
           nome: initialData.nome,
+          provincia: provinciaId,
         });
       } else {
-        form.reset({ nome: "" });
+        form.reset({
+          nome: "",
+          provincia: provinciaId,
+        });
       }
-      // Limpa erros do formulário ao abrir
       form.clearErrors();
     }
-  }, [initialData, isOpen, form]);
+  }, [initialData, isOpen, provinciaId, form]);
 
   async function onSubmit(data: Municipio) {
     try {
-      // Normaliza os dados antes de enviar
       const normalizedData = {
         ...data,
         nome: normalizeName(data.nome),
       };
 
-      // Validação adicional antes de enviar
       if (!normalizedData.nome || normalizedData.nome.length < 2) {
         form.setError("nome", {
           type: "manual",
-          message: "Nome da município deve ter pelo menos 3 caracteres",
+          message: "O nome do município deve ter pelo menos 3 caracteres",
         });
         return;
       }
 
-      if (initialData?.id) {
-        // Lógica de Edição
+      if (isEditing) {
         await updateMutation.mutateAsync(
           {
-            data: { ...normalizedData, id: initialData.id },
+            data: { ...normalizedData, id: initialData!.id },
           },
           {
             onSuccess: () => {
-              if (onSuccess) {
-                onSuccess();
-              }
+              onSuccess?.();
               onOpenChange(false);
               form.reset();
             },
-          }
+          },
         );
       } else {
-        // Lógica de Criação
         await createMutation.mutateAsync(normalizedData, {
           onSuccess: () => {
-            if (onSuccess) {
-              onSuccess();
-            }
+            onSuccess?.();
             onOpenChange(false);
             form.reset();
           },
@@ -123,52 +122,43 @@ export function MunicipioForm({
     } catch (error: any) {
       console.error("Erro na submissão:", error);
 
-      // Tratamento de erros específicos da API
       if (
         error?.message?.includes("duplicate") ||
-        error?.message?.includes("unique")
+        error?.message?.includes("unique") ||
+        error?.message?.includes("já existe")
       ) {
         form.setError("nome", {
           type: "manual",
-          message: "Já existe um município com este nome",
+          message: "Já existe um município com este nome nesta província",
         });
       } else {
-        // Mostrar erro genérico no formulário
         form.setError("root", {
           type: "manual",
-          message: error?.message || "Erro ao processar a solicitação",
+          message:
+            error?.message ||
+            "Erro ao processar a solicitação. Tente novamente.",
         });
       }
     }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-112.5 border-border/60 shadow-2xl overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-primary">
-            {initialData ? "Editar Município" : "Novo Município"}
-          </DialogTitle>
-          <DialogDescription className="font-medium text-muted-foreground">
-            Introduza os detalhes do Município.
-          </DialogDescription>
-          {/* Indicador de campos obrigatórios */}
-          <div className="text-xs text-red-500 text-center">
-            * Campos marcados são obrigatórios
-          </div>
-        </DialogHeader>
-
+    <>
+      <FormModal
+        item="Município"
+        onOpenChange={onOpenChange}
+        open={isOpen}
+        edit={isEditing}
+      >
         <Form {...form}>
           <form
-            id="category-form"
+            id="municipio-form"
             onSubmit={form.handleSubmit(onSubmit, (errors) => {
-              // Log de validação falha (opcional para debugging)
               console.log("Erros de validação:", errors);
-              // Rolar para o primeiro erro
               const firstError = Object.keys(errors)[0];
               if (firstError) {
                 const element = document.querySelector(
-                  `[name="${firstError}"]`
+                  `[name="${firstError}"]`,
                 );
                 element?.scrollIntoView({
                   behavior: "smooth",
@@ -176,12 +166,15 @@ export function MunicipioForm({
                 });
               }
             })}
-            className="space-y-6 pt-4"
+            className="space-y-5"
           >
             {/* Erro raiz (API) */}
             {form.formState.errors.root && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>
+              <Alert
+                variant="destructive"
+                className="rounded-lg border-destructive/30"
+              >
+                <AlertDescription className="text-sm font-medium">
                   {form.formState.errors.root.message}
                 </AlertDescription>
               </Alert>
@@ -192,43 +185,60 @@ export function MunicipioForm({
               control={form.control}
               name="nome"
               render={({ field, fieldState }) => (
-                <FormItem>
+                <FormItem className="space-y-2">
                   <FormLabel
                     className={cn(
-                      "font-bold transition-colors flex items-center gap-2",
-                      fieldState.error && "text-destructive"
+                      "text-sm font-bold flex items-center gap-1.5 transition-colors",
+                      fieldState.error ? "text-destructive" : "text-foreground",
                     )}
                   >
-                    Nome
-                    <span className="text-xs text-red-500 font-normal">
-                      (*)
+                    Nome do Município
+                    <span className="text-destructive text-xs font-normal">
+                      *
                     </span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Ex: Luanda, Uíge"
-                      {...field}
-                      maxLength={50}
-                      className={cn(
-                        "h-12 transition-all border-2 font-medium",
-                        fieldState.error
-                          ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive"
-                          : "border-border/60 focus-visible:ring-primary focus-visible:border-primary",
-                        !fieldState.error &&
-                          fieldState.isDirty &&
-                          !fieldState.invalid &&
-                          "border-green-500/50"
-                      )}
-                      aria-invalid={fieldState.invalid}
-                      aria-describedby={
-                        fieldState.error ? "nome-error" : undefined
-                      }
-                    />
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Ex: Cazenga, Talatona, Viana"
+                        {...field}
+                        maxLength={50}
+                        autoFocus
+                        className={cn(
+                          "h-11 pl-10 rounded-xl border-2 font-medium text-sm transition-all",
+                          fieldState.error
+                            ? "border-destructive/50 bg-destructive/5 focus-visible:ring-destructive/20 focus-visible:border-destructive"
+                            : "border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary",
+                          !fieldState.error &&
+                            fieldState.isDirty &&
+                            !fieldState.invalid &&
+                            "border-emerald-500/50",
+                        )}
+                        aria-invalid={fieldState.invalid}
+                        aria-describedby={
+                          fieldState.error ? "nome-error" : undefined
+                        }
+                      />
+                    </div>
                   </FormControl>
-                  <div className="flex justify-between items-center">
-                    <FormMessage className="text-[10px] font-extrabold uppercase tracking-widest italic" />
+                  <div className="flex justify-between items-center min-h-[20px]">
+                    {fieldState.error ? (
+                      <FormMessage className="text-xs font-semibold" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground/50">
+                        Nome oficial do município
+                      </span>
+                    )}
                     {field.value && field.value.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span
+                        className={cn(
+                          "text-[10px] font-medium tabular-nums transition-colors",
+                          field.value.length > 40
+                            ? "text-amber-500"
+                            : "text-muted-foreground",
+                        )}
+                      >
                         {field.value.length}/50
                       </span>
                     )}
@@ -236,79 +246,43 @@ export function MunicipioForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel
-                    className={cn(
-                      "font-bold transition-colors flex items-center gap-2",
-                      fieldState.error && "text-destructive"
-                    )}
-                  >
-                    Província
-                    <span className="text-xs text-red-500 font-normal">
-                      (*)
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <FormAsyncFancySelect
-                      control={form.control}
-                      name="provincia"
-                      endpoint="/organizacao/provincias"
-                      displayField="nome" // Mostra "João Silva"
-                      valueField="id" // Retorna "123"
-                      searchable
-                      clearable
-                      required
-                    />
-                  </FormControl>
-                  <div className="flex justify-between items-center">
-                    <FormMessage className="text-[10px] font-extrabold uppercase tracking-widest italic" />
-                    {field.value && field.value.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {field.value.length}/50
-                      </span>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="mt-8 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="h-12 font-semibold"
-                disabled={isLoading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                form="category-form"
-                className={cn(
-                  "h-14 font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 flex-1",
-                  !isLoading && "shadow-primary/40 hover:bg-primary/90"
-                )}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />A
-                    Processar...
-                  </>
-                ) : initialData ? (
-                  "Atualizar Categoria"
-                ) : (
-                  "Registar Categoria"
-                )}
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+
+        <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4 gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-10 font-semibold gap-2 border-border hover:bg-muted transition-colors"
+            disabled={isLoading}
+          >
+            <X size={16} />
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="municipio-form"
+            className={cn(
+              "h-10 font-bold gap-2 shadow-lg transition-all active:scale-[0.97]",
+              !isLoading && "shadow-primary/20 hover:shadow-primary/30",
+            )}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isEditing ? "A atualizar..." : "A criar..."}
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                {isEditing ? "Atualizar Município" : "Criar Município"}
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </FormModal>
+    </>
   );
 }
